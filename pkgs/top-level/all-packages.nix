@@ -15162,6 +15162,8 @@ in
 
   tremor = callPackage ../development/libraries/tremor { };
 
+  turtl-js = callPackage ../development/libraries/turtl-js { };
+
   twolame = callPackage ../development/libraries/twolame { };
 
   udns = callPackage ../development/libraries/udns { };
