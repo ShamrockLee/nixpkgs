@@ -20574,6 +20574,18 @@ with pkgs;
 
   trillian = callPackage ../tools/misc/trillian { };
 
+  turtl-core = turtl-core-rs;
+
+  turtl-core-rs = callPackage ../development/libraries/turtl-core-rs {
+    libsodium = libsodium.overrideAttrs (oldAttrs: {
+      version = "1.0.16";
+      src = fetchurl {
+        url = "https://download.libsodium.org/libsodium/releases/old/libsodium-1.0.16.tar.gz";
+        sha256 = "7q3H4eG87wloD7SDfUSPvfVyJJePhlrBwWdFho+9BTM=";
+      };
+    });
+  };
+
   twolame = callPackage ../development/libraries/twolame { };
 
   udns = callPackage ../development/libraries/udns { };
