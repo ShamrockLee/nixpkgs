@@ -29703,6 +29703,8 @@ with pkgs;
     stdenv = clangStdenv; # https://github.com/jpcima/tunefish/issues/4
   };
 
+  turtl-desktop-bin = callPackage ../applications/office/turtl-desktop-bin { };
+
   tut = callPackage ../applications/misc/tut { };
 
   tuxguitar = callPackage ../applications/editors/music/tuxguitar {
