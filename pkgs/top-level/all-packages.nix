@@ -24342,6 +24342,10 @@ in
 
   timewarrior = callPackage ../applications/misc/timewarrior { };
 
+  timeshift-unwrapped = callPackage ../applications/backup/timeshift/unwrapped.nix { };
+
+  timeshift = callPackage ../applications/backup/timeshift/default.nix { };
+
   timidity = callPackage ../tools/misc/timidity { };
 
   tint2 = callPackage ../applications/misc/tint2 { };
