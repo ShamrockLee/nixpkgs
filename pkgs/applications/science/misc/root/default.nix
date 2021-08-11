@@ -1,6 +1,6 @@
 { stdenv
 , lib
-, fetchurl
+, fetchFromGitHub
 , makeWrapper
 , cmake
 , git
@@ -36,12 +36,20 @@
 }:
 
 stdenv.mkDerivation rec {
-  pname = "root";
-  version = "6.24.02";
+  pname = "root-unstable";
+  # master, v6.05.01
+  version = "2021-08-09";
 
-  src = fetchurl {
-    url = "https://root.cern.ch/download/root_v${version}.source.tar.gz";
-    sha256 = "sha256-BQfhCV4nnMxyQPZR0llmAkMlF5+oWhJZtpS1ZyOtfBw=";
+  # src = fetchurl {
+  #   url = "https://root.cern.ch/download/root_v${version}.source.tar.gz";
+  #   sha256 = "sha256-BQfhCV4nnMxyQPZR0llmAkMlF5+oWhJZtpS1ZyOtfBw=";
+  # };
+
+  src = fetchFromGitHub {
+    owner = "root-project";
+    repo = "root";
+    rev = "67c11968c1552602cb685ba063d3b6ab30fd083c";
+    sha256 = "sha256-qBngRd2hlubjgdIGh76CGynGNHJnoPKFySPInTp/iWg=";
   };
 
   nativeBuildInputs = [ makeWrapper cmake pkg-config git ];
@@ -161,5 +169,6 @@ stdenv.mkDerivation rec {
     platforms = platforms.unix;
     maintainers = [ maintainers.veprbl ];
     license = licenses.lgpl21;
+    mainProgram = "root";
   };
 }
