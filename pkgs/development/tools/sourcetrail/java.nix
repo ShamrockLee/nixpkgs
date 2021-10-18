@@ -1,9 +1,9 @@
-{ pkgs, javaPackages }:
+{ sourcetrail, javaPackages }:
 
 let
   javaIndexer = javaPackages.mavenbuild {
-    name = "sourcetrail-java-indexer-${pkgs.sourcetrail.version}";
-    src = pkgs.sourcetrail.src;
+    pname = "sourcetrail-java-indexer";
+    inherit (sourcetrail) version src;
     m2Path = "com/sourcetrail/java-indexer";
 
     # This doesn't include all required dependencies. We still rely on binary

@@ -18,7 +18,7 @@ in rec {
   mavenHelloRec = { mavenDeps, mavenbuild, sha512, version, skipTests ? true, quiet ? true }: mavenbuild {
     inherit mavenDeps sha512 version skipTests quiet;
 
-    name = "maven-hello-${version}";
+    pname = "maven-hello";
     src = pkgs.fetchFromGitHub {
       inherit sha512;
       owner = "NeQuissimus";

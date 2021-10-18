@@ -1,13 +1,17 @@
 { lib, stdenv, maven, pkgs }:
-{ mavenDeps, src, name, meta, m2Path, skipTests ? true, quiet ? true, ... }:
+
+# All the other arguments will be used as attributes for `stdenv.mkDerivation`
+# including `pname`, `version`, `name`, and `meta`.
+# Note that `pname+version` is preferred over `name` in Nixpkgs (#103997)
+{ mavenDeps, src, m2Path, skipTests ? true, quiet ? true, ... }@args:
 
 with builtins;
 with lib;
 
 let
   mavenMinimal = import ./maven-minimal.nix { inherit lib pkgs ; };
-in stdenv.mkDerivation rec {
-  inherit mavenDeps src name meta m2Path;
+in stdenv.mkDerivation ((rec {
+  inherit mavenDeps src m2Path;
 
   flatDeps = unique (flatten (mavenDeps ++ mavenMinimal.mavenMinimal));
 
@@ -31,4 +35,4 @@ in stdenv.mkDerivation rec {
     cp ./target/*.jar $out/m2/${m2Path}
     cp -v ./target/*.jar $out/target/
   '';
-}
+}) // (removeAttrs args [ "mavenDeps" "src" "m2Path" "skipTests" "quiet" ]))

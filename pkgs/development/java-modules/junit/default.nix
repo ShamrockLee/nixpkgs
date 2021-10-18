@@ -14,7 +14,7 @@ in rec {
   junitGen = { mavenDeps, sha512, version }: mavenbuild-jdk8 {
     inherit mavenDeps sha512 version;
 
-    name = "junit-${version}";
+    pname = "junit";
     src = pkgs.fetchFromGitHub {
       inherit sha512;
       owner = "junit-team";
