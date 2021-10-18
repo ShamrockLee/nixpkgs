@@ -37,12 +37,12 @@ assert (url == "") || (urls == []);
 assert (repos != []) || (url != "") || (urls != []);
 
 let
-  name_ =
+  pname_ =
     lib.concatStrings [
       (lib.replaceChars ["."] ["_"] groupId) "_"
-      (lib.replaceChars ["."] ["_"] artifactId) "-"
-      version
+      (lib.replaceChars ["."] ["_"] artifactId)
     ];
+  name_ = pname_ + version;
   mkJarUrl = repoUrl:
     lib.concatStringsSep "/" [
       (lib.removeSuffix "/" repoUrl)
@@ -62,7 +62,8 @@ let
     );
 in
   stdenv.mkDerivation {
-    name = name_;
+    pname = pname_;
+    inherit version;
     phases = "installPhase fixupPhase";
     # By moving the jar to $out/share/java we make it discoverable by java
     # packages packages that mention this derivation in their buildInputs.
@@ -72,5 +73,7 @@ in
     '';
     # We also add a `jar` attribute that can be used to easily obtain the path
     # to the downloaded jar file.
-    passthru.jar = jar;
+    passthru = {
+      inherit artifactId groupId jar;
+    };
   }
