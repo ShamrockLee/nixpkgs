@@ -27777,6 +27777,8 @@ with pkgs;
     ncurses = ncurses5;
   };
 
+  styluslabs-write-bin = callPackage ../applications/graphics/styluslabs-write-bin { };
+
   styx = callPackage ../applications/misc/styx { };
 
   tecoc = callPackage ../applications/editors/tecoc { };
