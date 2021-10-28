@@ -19236,6 +19236,8 @@ with pkgs;
 
   ronn = callPackage ../development/tools/ronn { };
 
+  ronn-ng = callPackage ../development/tools/ronn-ng { };
+
   rshell = python3.pkgs.callPackage ../development/embedded/rshell { };
 
   rttr = callPackage ../development/libraries/rttr { };
