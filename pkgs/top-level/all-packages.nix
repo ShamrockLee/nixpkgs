@@ -19234,7 +19234,9 @@ with pkgs;
 
   round = callPackage ../applications/graphics/round { };
 
-  ronn = callPackage ../development/tools/ronn { };
+  ronn = ronn-ng;
+
+  ronn-legacy = callPackage ../development/tools/ronn-legacy { };
 
   ronn-ng = callPackage ../development/tools/ronn-ng { };
 

@@ -1647,6 +1647,14 @@ Superuser created successfully.
           better user experience and benefit from this change.
         </para>
       </listitem>
+      <listitem>
+        <para>
+          The <literal>ronn</literal> Markdown-to-manpage converter now
+          points to <literal>ronn-ng</literal>, a currently maintained
+          and updated fork of the original project. The original one are
+          now under the <literal>ronn-legacy</literal> attribute.
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 </section>
