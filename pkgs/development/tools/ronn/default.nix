@@ -22,10 +22,15 @@ stdenv.mkDerivation rec {
   passthru.updateScript = bundlerUpdateScript "ronn";
 
   meta = with lib; {
-    description = "markdown-based tool for building manpages";
+    description = "Markdown-based tool for building manpages";
+    longDescription = ''
+      This is the original ronn project.
+      The last commit was made on August 2013, and the last version `0.7.3`.
+    '';
     homepage = "https://rtomayko.github.io/ronn/";
     license = licenses.mit;
     maintainers = with maintainers; [ zimbatm nicknovitski ];
     platforms = env.ruby.meta.platforms;
+    mainProgram = "ronn";
   };
 }
