@@ -1016,6 +1016,8 @@ with pkgs;
 
   cope = callPackage ../tools/misc/cope { };
 
+  eos = callPackage ../tools/filesystems/eos { };
+
   gamemode = callPackage ../tools/games/gamemode {
     libgamemode32 = pkgsi686Linux.gamemode.lib;
   };
