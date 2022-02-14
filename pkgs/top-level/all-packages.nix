@@ -1083,6 +1083,10 @@ with pkgs;
 
   xcd = callPackage ../tools/misc/xcd { };
 
+  xrootd = callPackage ../tools/networking/xrootd {
+    libkrb5 = if stdenv.isDarwin then libheimdal else libkrb5;
+  };
+
   xtrt = callPackage ../tools/archivers/xtrt { };
 
   yabridge = callPackage ../tools/audio/yabridge {
