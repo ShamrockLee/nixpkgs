@@ -25,6 +25,7 @@
 , nlohmann_json
 , pkg-config
 , python
+, xrootd
 , xxHash
 , zlib
 , zstd
@@ -73,6 +74,7 @@ stdenv.mkDerivation rec {
     nlohmann_json
     python.pkgs.numpy
     tbb
+    xrootd
   ]
   ++ lib.optionals (!stdenv.isDarwin) [ libX11 libXpm libXft libXext libGLU libGL ]
   ++ lib.optionals (stdenv.isDarwin) [ Cocoa CoreSymbolication OpenGL ]
@@ -160,7 +162,7 @@ stdenv.mkDerivation rec {
     "-Dvdt=OFF"
     "-Dwebgui=OFF"
     "-Dxml=ON"
-    "-Dxrootd=OFF"
+    "-Dxrootd=ON"
   ]
   ++ lib.optional (stdenv.cc.libc != null) "-DC_INCLUDE_DIRS=${lib.getDev stdenv.cc.libc}/include"
   ++ lib.optionals stdenv.isDarwin [
