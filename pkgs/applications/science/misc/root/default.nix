@@ -37,12 +37,14 @@
 , Cocoa
 , CoreSymbolication
 , OpenGL
+, version ? "6.24.06"
 , noSplash ? false
+, sw-vers-patch ? ./sw_vers.patch
 }:
 
 stdenv.mkDerivation rec {
   pname = "root";
-  version = "6.24.06";
+  inherit version;
 
   src = fetchurl {
     url = "https://root.cern.ch/download/root_v${version}.source.tar.gz";
@@ -78,16 +80,15 @@ stdenv.mkDerivation rec {
   ++ lib.optionals (stdenv.isDarwin) [ Cocoa CoreSymbolication OpenGL ]
   ;
 
-  patches = [
-    ./sw_vers.patch
-
-    # Fix builtin_llvm=OFF support
-    (fetchpatch {
-      url = "https://github.com/root-project/root/commit/0cddef5d3562a89fe254e0036bb7d5ca8a5d34d2.diff";
-      excludes = [ "interpreter/cling/tools/plugins/clad/CMakeLists.txt" ];
-      sha256 = "sha256-VxWUbxRHB3O6tERFQdbGI7ypDAZD3sjSi+PYfu1OAbM=";
-    })
-  ];
+  patches =
+  lib.optional (sw-vers-patch != null) sw-vers-patch
+  # Fix builtin_llvm=OFF support
+  ++ lib.optional (lib.versionOlder version "6.25.2") (fetchpatch {
+    url = "https://github.com/root-project/root/commit/0cddef5d3562a89fe254e0036bb7d5ca8a5d34d2.diff";
+    excludes = [ "interpreter/cling/tools/plugins/clad/CMakeLists.txt" ];
+    sha256 = "sha256-VxWUbxRHB3O6tERFQdbGI7ypDAZD3sjSi+PYfu1OAbM=";
+  })
+  ;
 
   # Fix build against vanilla LLVM 9
   postPatch = ''
