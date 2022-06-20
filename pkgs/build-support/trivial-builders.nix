@@ -668,6 +668,86 @@ rec {
         writeDirectReferencesToFile (writeText "string-file" string);
 
 
+  /*
+   * Write the references (i.e. the runtime dependencies in the Nix store) of the elements in `paths' to a file.
+   * The elements are sorted according to their hashes, and duplicated lines are removed.
+   */
+  writeMultipleReferencesToFile = let
+    lengthStoreDirPlusOne = lib.stringLength builtins.storeDir + 1;
+  in
+  paths: runCommand "runtime-deps-multiple" {
+    referencesFiles = map writeReferencesToFile paths;
+  }
+  # This script merges the `writeReferencesToFile` result of all the elements in `paths`
+  # using the fact that the lines in these files are all sorted lexicographically according to their hashes
+  # The merge-sorted-arrays algorithm is implemented here.
+  ''
+    touch "$out"
+    declare -a referencesFilesArray=( $referencesFiles )
+    nReferencesFiles="''${#referencesFilesArray[@]}"
+    if ! (( nReferencesFiles )); then
+      exit 0
+    fi
+    declare -a lengthArray=()
+    declare -a indexArray=()
+    for (( i=0; i<"$nReferencesFiles"; i++ )); do
+      # Point currentRefArray to variable refArray$i
+      declare -n currentRefArray="refArray$i"
+      readarray -t currentRefArray < "''${referencesFilesArray[$i]}"
+      lengthArray+=( "''${#currentRefArray[@]}" )
+      indexArray+=( 0 )
+    done
+    currentMinRef=""
+    iCurrentMin=
+    previousMinRef=""
+    nAlive="$nReferencesFiles"
+    while (( nAlive )); do
+      for (( i=0; i<"$nReferencesFiles"; i++ )); do
+        declare -n currentRefArray="refArray$i"
+        if (( "''${indexArray[$i]}" == -1 )); then
+          continue
+        fi
+        while true; do
+          if (( ''${indexArray[$i]} >= ''${lengthArray[$i]} )); then
+            indexArray[$i]=-1
+            break
+          fi
+          currentRef="''${currentRefArray[''${indexArray[$i]}]}"
+          if \
+            # `currentRef` isn't a nix store path
+            [[ "''${currentRef:0:${toString lengthStoreDirPlusOne}}" != "${builtins.storeDir}/" ]] || \
+            # `currentRef` is the same as `currentMinRef`
+            [[ "$currentRef" == "$currentMinRef" ]]
+          then
+            indexArray[$i]=$(("''${indexArray[$i]}" + 1))
+          else
+            break
+          fi
+        done
+        if (( "''${indexArray[$i]}" == -1 )); then
+          nAlive=$(("$nAlive" - 1))
+          continue
+        fi
+        if \
+          # currentMinRef hasn't set
+          [[ -z "''${currentMinRef:-}" ]] || \
+          # Compare the hash lexicographically
+          [[ "''${currentMinRef:${toString lengthStoreDirPlusOne}:32}" > "''${currentRef:${toString lengthStoreDirPlusOne}:32}" ]]
+        then
+          currentMinRef="$currentRef"
+          iCurrentMin="$i"
+        fi
+      done
+      if (( nAlive )) && [[ -z "$previousMinRef" || "$previousMinRef" != "$currentMinRef" ]]; then
+        echo "$currentMinRef" >> "$out"
+        previousMinRef="$currentMinRef"
+        indexArray[$iCurrentMin]=$(("indexArray[$iCurrentMin]" + 1))
+        currentMinRef=""
+      fi
+    done
+  '';
+
+
   /* Print an error message if the file with the specified name and
    * hash doesn't exist in the Nix store. This function should only
    * be used by non-redistributable software with an unfree license
