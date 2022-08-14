@@ -9555,6 +9555,10 @@ self: super: with self; {
     inherit (pkgs) libarchive;
   };
 
+  RASPA2 = callPackage ../applications/science/molecular-dynamics/raspa/python.nix {
+    inherit namePrefix;
+  };
+
   rasterio = callPackage ../development/python-modules/rasterio { };
 
   ratelim = callPackage ../development/python-modules/ratelim { };
