@@ -1,9 +1,13 @@
-{ lib, stdenv, llvmPackages }:
+{ lib
+, stdenv
+, llvmPackages
+}:
 
 let
   unwrapped = llvmPackages.clang-unwrapped;
 
-in stdenv.mkDerivation {
+in
+stdenv.mkDerivation {
   inherit unwrapped;
 
   pname = "clang-tools";
