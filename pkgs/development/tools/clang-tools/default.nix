@@ -1,6 +1,9 @@
 { lib
 , stdenv
+, lndir ? xorg.lndir
+, xorg
 , llvmPackages
+, python3
 }:
 
 let
@@ -8,6 +11,13 @@ let
 
 in
 stdenv.mkDerivation {
+
+  outputs = [ "out" "python" ];
+
+  nativeBuildInputs = [
+    lndir
+  ];
+
   inherit unwrapped;
 
   pname = "clang-tools";
@@ -15,11 +25,15 @@ stdenv.mkDerivation {
   dontUnpack = true;
   clang = llvmPackages.clang;
 
+  unwrapped_python = unwrapped.python;
+  pythonInterpreter = python3.interpreter;
+
   installPhase = ''
     runHook preInstall
 
     mkdir -p $out/bin
 
+    # Link and wrap binaries
     for tool in $unwrapped/bin/clang-*; do
       tool=$(basename "$tool")
 
@@ -46,11 +60,25 @@ stdenv.mkDerivation {
     substituteAll ${./wrapper} $out/bin/clangd
     chmod +x $out/bin/clangd
 
+    # Link and wrap python scripts (copy-free replacement to patchShebangs)
+    mkdir -p $python/bin
+    substituteAll ${./wrapper-python} $python/bin/.python3-script-wrapper
+    chmod +x $python/bin/.python3-script-wrapper
+
+    for tool in $unwrapped_python/bin/*; do
+      ln -s "$python/bin/.python3-script-wrapper" "$python/bin/$(basename "$tool")"
+    done
+
+    # Python script executables may depend on modules stored in "''${clang-unwrapped.python}/share"
+    mkdir -p $python/share
+    lndir -silent "$unwrapped_python/share" "$python/share"
+
     runHook postInstall
   '';
 
   meta = unwrapped.meta // {
     description = "Standalone command line tools for C++ development";
     maintainers = with lib.maintainers; [ patryk27 ];
+    outputsToInstall = [ "out" "python" ];
   };
 }
