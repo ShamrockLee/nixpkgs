@@ -38,6 +38,9 @@
 , CoreSymbolication
 , OpenGL
 , noSplash ? false
+  # See https://github.com/NixOS/nixpkgs/pull/192581#issuecomment-1256860426
+  # for some context on issues on aarch64.
+, enableNativeLLVM ? !stdenv.isAarch64
 }:
 
 let
@@ -73,7 +76,6 @@ stdenv.mkDerivation rec {
     zstd
     lapack
     libxml2
-    _llvm_9
     lz4
     xz
     gsl
@@ -90,6 +92,7 @@ stdenv.mkDerivation rec {
   ]
   ++ lib.optionals (!stdenv.isDarwin) [ libX11 libXpm libXft libXext libGLU libGL ]
   ++ lib.optionals (stdenv.isDarwin) [ Cocoa CoreSymbolication OpenGL ]
+  ++ lib.optional enableNativeLLVM _llvm_9
   ;
 
   patches = [
@@ -130,7 +133,7 @@ stdenv.mkDerivation rec {
     "-DCMAKE_INSTALL_BINDIR=bin"
     "-DCMAKE_INSTALL_LIBDIR=lib"
     "-DCMAKE_INSTALL_INCLUDEDIR=include"
-    "-Dbuiltin_llvm=OFF"
+    "-Dbuiltin_llvm=${if !enableNativeLLVM then "ON" else "OFF"}"
     "-Dbuiltin_nlohmannjson=OFF"
     "-Dbuiltin_openui5=OFF"
     "-Dalien=OFF"
@@ -196,8 +199,6 @@ stdenv.mkDerivation rec {
     maintainers = [ maintainers.veprbl ];
     license = licenses.lgpl21;
 
-    # See https://github.com/NixOS/nixpkgs/pull/192581#issuecomment-1256860426
-    # for some context on issues on aarch64.
-    broken = stdenv.isAarch64;
+    broken = stdenv.isAarch64 && enableNativeLLVM;
   };
 }
