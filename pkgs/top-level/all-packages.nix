@@ -2350,6 +2350,10 @@ with pkgs;
 
   ytree = callPackage ../applications/file-managers/ytree { };
 
+  ### APPLICATIONS/SECURITY
+
+  clamtk = callPackage ../applications/security/clamtk { };
+
   ### APPLICATIONS/TERMINAL-EMULATORS
 
   alacritty = callPackage ../applications/terminal-emulators/alacritty {
