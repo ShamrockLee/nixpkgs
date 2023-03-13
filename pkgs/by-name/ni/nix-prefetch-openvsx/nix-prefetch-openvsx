@@ -123,14 +123,19 @@ function prepare_manifest_path {
 }
 
 function query_vsix_hash {
-    # TODO: Implement this when the hash-querying feature is merged by upstream
-    # See https://github.com/eclipse/openvsx/pull/678
-    prepare_force_query_hash
-    if ((FORCE_QUERY_HASH)); then
-        echo "query_vsix_hash: not implemented yet" >&2
-        echo "See https://github.com/eclipse/openvsx/pull/678" >&2
+    prepare_vsix_metadata_url
+    prepare_exttmp
+    prepare_hash_algo
+    prepare_hash_format
+    local VSIX_HASH_FILE_URL="${VSIX_METADATA_URL}/file/${HASH_ALGO}"
+    local VSIX_HASH_FILE_PATH_EXPECTED="${EXTTMP}/${HASH_ALGO}"
+    download_file "$VSIX_HASH_FILE_PATH_EXPECTED" "$VSIX_HASH_FILE_URL"
+    VSIX_HASH="$(nix --extra-experimental-features nix-command hash "to-${HASH_FORMAT}" --type "${HASH_ALGO}" "$(cat "$VSIX_HASH_FILE_PATH_EXPECTED")")"
+    if [[ -z "$VSIX_HASH" ]]; then
+        echo "query_vsix_hash: failed" >&2
+        return 1
     fi
-    return 1
+    rm "$VSIX_HASH_FILE_PATH_EXPECTED"
 }
 
 function prepare_vsix_hash {
