@@ -80,6 +80,24 @@ pet_4_0 = pet.overrideAttrs (finalAttrs: previousAttrs: {
 
 Most customization can be done via the corresponding `pre*` and `post*` phases without specifying the `*Phase` directly. If any of these `*Phase` are specified directly, however, the one provided by `buildGoModule` will be overwritten. This might be intended if the build process isn't done directly through `go install` and/or `go test`.
 
+For Makefile-based packages, one can specify the use of the `stdenv.mkDerivation`-provided phases by setting the corresponding phases to `null`.
+
+The corresponding commands `buildGoModule` uses to implement each phase can be accessed under
+`finalAttrs.go<Phasename>`.
+
+For example, the following expression uses the `configurePhase` of `stdenv` to run the configuration file
+after fetching the dependent modules:
+
+```nix
+buildGoModule (finalAttrs: {
+  # ...
+  preConfigure = finalAttrs.goConfigure;
+  configurePhase = null;
+  # ...
+})
+```
+
+
 ## `buildGoPackage` (legacy) {#ssec-go-legacy}
 
 The function `buildGoPackage` builds legacy Go programs, not supporting Go modules.

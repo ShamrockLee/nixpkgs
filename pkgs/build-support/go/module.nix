@@ -140,7 +140,47 @@ rattrs:
     #
     # If you would like to use `stdenv.mkDerivation`-provided phases,
     # set the corresponding phases to `null`.
+    #
+    # The corresponding commands of each phases can be accessed under
+    # `finalAttrs.go<Phasename>`.
+    #
+    # For example, the following expressiot uses the stdenv configurePhase
+    # after fetching the dependent modules:
+    # ```nix
+    # buildGoModule (finalAttrs: {
+    #   # ...
+    #   preConfigure = finalAttrs.goConfigure;
+    #   configurePhase = null;
+    #   # ...
+    # })
+    # ```
 
+    configurePhase = previousAttrs.configurePhase or ''
+      runHook preConfigure
+      ${finalAttrs.goConfigure}
+      runHook postConfigure
+    '';
+
+    # `budFlags` and `buildFlgsArray` is used internally by `goBuild`.
+    # Use `ldflag` and `tags` instead, or
+    # specify the buildPhase if you don't want buildGoModule to handle the buildPhase.
+    buildPhase = previousAttrs.buildPhase or ''
+      runHook preBuild
+      ${finalAttrs.goBuild}
+      runHook postBuild
+    '';
+
+    checkPhase = previousAttrs.checkPhase or ''
+      runHook preCheck
+      ${finalAttrs.goCheck}
+      runHook postCheck
+    '';
+
+    installPhase = previousAttrs.installPhase or ''
+      runHook preInstall
+      ${finalAttrs.goInstall}
+      runHook postInstall
+    '';
 
     # ATTRIBUTES:
     # These attributes must not be set.
@@ -256,9 +296,7 @@ rattrs:
     GO111MODULE = "on";
     GOFLAGS = lib.optionals (!finalAttrs.proxyVendor) [ "-mod=vendor" ] ++ lib.optionals (!finalAttrs.allowGoReference) [ "-trimpath" ];
 
-    configurePhase = previousAttrs.configurePhase or (''
-      runHook preConfigure
-
+    goConfigure = (''
       export GOCACHE=$TMPDIR/go-cache
       export GOPATH="$TMPDIR/go"
       export GOPROXY=off
@@ -278,13 +316,9 @@ rattrs:
       if [[ $NIX_HARDENING_ENABLE =~ "pie" ]]; then
         export GOFLAGS="-buildmode=pie $GOFLAGS"
       fi
-
-      runHook postConfigure
     '');
 
-    buildPhase = previousAttrs.buildPhase or (''
-      runHook preBuild
-
+    goBuild = (''
       exclude='\(/_\|examples\|Godeps\|testdata'
       if [[ -n "$excludedPackages" ]]; then
         IFS=' ' read -r -a excludedArr <<<$excludedPackages
@@ -360,31 +394,21 @@ rattrs:
           rmdir $dir
         fi
       )
-    '' + ''
-      runHook postBuild
     '');
 
-    checkPhase = previousAttrs.checkPhase or ''
-      runHook preCheck
-
+    goCheck = ''
       # We do not set trimpath for tests, in case they reference test assets
       export GOFLAGS=''${GOFLAGS//-trimpath/}
 
       for pkg in $(getGoDirs test); do
         buildGoDir test "$pkg"
       done
-
-      runHook postCheck
     '';
 
-    installPhase = previousAttrs.installPhase or ''
-      runHook preInstall
-
+    goInstall = ''
       mkdir -p $out
       dir="$GOPATH/bin"
       [ -e "$dir" ] && cp -r $dir $out
-
-      runHook postInstall
     '';
 
     strictDeps = true;
@@ -409,7 +433,9 @@ rattrs:
       "both `vendorHash` and `vendorSha256` set. only one can be set.";
     assert finalAttrs.goPackagePath != "" -> throw
       "`goPackagePath` is not needed with `buildGoModule`";
-    lib.warnIf (finalAttrs.buildFlags != "" || finalAttrs.buildFlagsArray != "")
+    previousAttrs.go-modules;
+
+    goBuild = lib.warnIf (finalAttrs.buildFlags != "" || finalAttrs.buildFlagsArray != "")
       "Use the `ldflags` and/or `tags` attributes instead of `buildFlags`/`buildFlagsArray`"
-      previousAttrs.go-modules;
+      previousAttrs.goBuild;
 })
