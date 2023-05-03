@@ -43,7 +43,7 @@
 
           echo "Generating blank_patched.bash from blank.bash"
           cp blank.bash blank_patched.bash
-          patchRcPathBash blank_patched.bash "$PWD/delta:$PWD/foxtrot"
+          patchRcPathBash blank_patched.bash "$PWD/del ta:$PWD/foxtrot"
 
           echo "Running shellcheck against blank_patched.bash"
           shellcheck -s bash blank_patched.bash
@@ -93,7 +93,7 @@
           chmod u+w sample_source_patched.bash
 
           echo "Generating sample_source_patched.bash from ./sample_source.bash"
-          patchRcPathBash sample_source_patched.bash "$PWD/delta:$PWD/foxtrot"
+          patchRcPathBash sample_source_patched.bash "$PWD/del ta:$PWD/foxtrot"
 
           echo "Running shellcheck against sample_source_patched.bash"
           shellcheck -s bash sample_source_patched.bash
@@ -165,7 +165,7 @@
 
           echo "Generating blank_patched.csh from blank.csh"
           cp blank.csh blank_patched.csh
-          patchRcPathCsh blank_patched.csh "$PWD/delta:$PWD/foxtrot"
+          patchRcPathCsh blank_patched.csh "$PWD/de lta:$PWD/foxtrot"
 
           echo "Testing in Csh if blank.csh and blank_patched.csh modifies PATH the same way"
           tcsh -e ${./test-sourcing-csh} blank.csh blank_patched.csh
@@ -194,7 +194,7 @@
           echo "Generating sample_source_patched.csh from sample_source.csh"
           cp sample_source.csh sample_source_patched.csh
           chmod u+w sample_source_patched.csh
-          patchRcPathCsh sample_source_patched.csh "$PWD/delta:$PWD/foxtrot"
+          patchRcPathCsh sample_source_patched.csh "$PWD/del ta:$PWD/foxtrot"
 
           echo "Testing in Csh if sample_source.csh and sample_source_patched.csh modifies PATH the same way"
           tcsh -e ${./test-sourcing-csh} sample_source.csh sample_source_patched.csh
@@ -246,7 +246,7 @@
 
           echo "Generating blank_patched.fish from blank.fish"
           cp blank.fish blank_patched.fish
-          patchRcPathFish blank_patched.fish "$PWD/delta:$PWD/foxtrot"
+          patchRcPathFish blank_patched.fish "$PWD/del ta:$PWD/foxtrot"
 
           echo "Testing in Fish if blank.fish and blank_patched.fish modifies PATH the same way"
           HOME_TEMP="$(mktemp -d temporary_home_XXXXXX)"
@@ -274,7 +274,7 @@
           chmod u+w sample_source_patched.fish
 
           echo "Generating sample_source_patched.fish from ${./sample_source.fish}"
-          patchRcPathFish sample_source_patched.fish "$PWD/delta:$PWD/foxtrot"
+          patchRcPathFish sample_source_patched.fish "$PWD/del ta:$PWD/foxtrot"
           echo "Testing in Fish if sample_source.fish and sample_source_patched.fish modifies PATH the same way"
           HOME_TEMP="$(mktemp -d temporary_home_XXXXXX)"
           HOME="$HOME_TEMP" fish ${./test-sourcing-fish} ${./sample_source.fish} sample_source_patched.fish
@@ -343,7 +343,7 @@
 
           echo "Generating blank_patched.sh from blank.sh"
           cp blank.sh blank_patched.sh
-          patchRcPathPosix blank_patched.sh "$PWD/delta:$PWD/foxtrot"
+          patchRcPathPosix blank_patched.sh "$PWD/del ta:$PWD/foxtrot"
 
           echo "Running shellcheck against blank_patched.sh"
           shellcheck -s sh blank_patched.sh
@@ -381,7 +381,7 @@
           ksh -eu -c ". $PWD/silent_hello_patched.sh"
 
 
-          # Generate the sample source "$PWD/delta:$PWD/foxtrot" "$PWD/delta:$PWD/foxtrot"
+          # Generate the sample source "$PWD/del ta:$PWD/foxtrot" "$PWD/del ta:$PWD/foxtrot"
 
           substitute ${./sample_source.sh.in} sample_source.sh --replace @sed@ ${gnused}/bin/sed
           chmod u+rw sample_source.sh
@@ -399,7 +399,7 @@
           echo "Generating sample_source_patched.sh from sample_source.sh"
           cp sample_source.sh sample_source_patched.sh
           chmod u+w sample_source_patched.sh
-          patchRcPathPosix sample_source_patched.sh "$PWD/delta:$PWD/foxtrot"
+          patchRcPathPosix sample_source_patched.sh "$PWD/del ta:$PWD/foxtrot"
 
           echo "Running shellcheck against sample_source_patched.sh"
           shellcheck -s sh sample_source_patched.sh

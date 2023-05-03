@@ -4,7 +4,7 @@ set -eu -o pipefail
 
 UNPATCHED_SOURCE_FILE="$1"
 PATCHED_SOURCE_FILE="$2"
-ORIG_PATH="$PWD/alfa:$PWD/bravo"
+ORIG_PATH="$PWD/al fa:$PWD/bravo"
 RESULT_PATH_FROM_UNPATCHED="$(
     PATH="$ORIG_PATH"; export PATH
     . "$UNPATCHED_SOURCE_FILE"
