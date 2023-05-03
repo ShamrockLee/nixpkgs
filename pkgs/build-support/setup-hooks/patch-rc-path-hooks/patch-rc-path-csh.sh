@@ -1,8 +1,6 @@
-patchRcPathCsh(){
-    local FILE_TO_PATCH="$1"
-    local SOURCETIME_PATH="$2"
-    local FILE_TO_WORK_ON="$(mktemp "$(basename "$FILE_TO_PATCH").XXXXXX.tmp")"
-    cat <<EOF >> "$FILE_TO_WORK_ON"
+patchRcPathCshGenHead(){
+    local SOURCETIME_PATH="$1"
+    cat <<EOF
 # Lines to add to PATH the source-time utilities for Nixpkgs packaging
 if (! \$?PATH) then
     setenv PATH ""
@@ -14,8 +12,11 @@ else
 endif
 # End of lines to add to PATH source-time utilities for Nixpkgs packaging
 EOF
-    cat "$FILE_TO_PATCH" >> "$FILE_TO_WORK_ON"
-    cat <<EOF >> "$FILE_TO_WORK_ON"
+}
+
+patchRcPathCshGenTail(){
+    local SOURCETIME_PATH="$1"
+    cat <<EOF
 # Lines to clean up inside PATH the source-time utilities for Nixpkgs packaging
 if (\$?PATH) then
     if ("\$PATH" != "") then
@@ -25,6 +26,15 @@ if (\$?PATH) then
 endif
 # End of lines to clean up inside PATH the source-time utilities for Nixpkgs packaging
 EOF
+}
+
+patchRcPathCsh(){
+    local FILE_TO_PATCH="$1"
+    local SOURCETIME_PATH="$2"
+    local FILE_TO_WORK_ON="$(mktemp "$(basename "$FILE_TO_PATCH").XXXXXX.tmp")"
+    patchRcPathCshGenHead "$SOURCETIME_PATH" >> "$FILE_TO_WORK_ON"
+    cat "$FILE_TO_PATCH" >> "$FILE_TO_WORK_ON"
+    patchRcPathCshGenTail "$SOURCETIME_PATH" >> "$FILE_TO_WORK_ON"
     cat "$FILE_TO_WORK_ON" > "$FILE_TO_PATCH"
     rm "$FILE_TO_WORK_ON"
 }
