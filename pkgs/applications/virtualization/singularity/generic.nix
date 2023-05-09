@@ -73,6 +73,8 @@ in
 , newgidmapPath ? null
   # Remove the symlinks to `singularity*` when projectName != "singularity"
 , removeCompat ? false
+  # External config directory to use. `null` disables the behavior.
+, externalConfigDir ? null
   # Workaround #86349
   # should be removed when the issue is resolved
 , vendorHash ? _defaultGoVendorArgs.vendorHash
@@ -102,10 +104,15 @@ in
 
   strictDeps = true;
 
+  outputs = [ "out" ]
+    ++ lib.optional (!isNull externalConfigDir) "conforig"
+    ;
+
   passthru = {
     inherit
       enableSeccomp
       enableSuid
+      externalConfigDir
       projectName
       removeCompat
       starterSuidPath
@@ -228,6 +235,11 @@ in
     ${lib.optionalString (enableSuid && (starterSuidPath != null)) ''
       mv "$out"/libexec/${projectName}/bin/starter-suid{,.orig}
       ln -s ${lib.escapeShellArg starterSuidPath} "$out/libexec/${projectName}/bin/starter-suid"
+    ''}
+    ${lib.optionalString (!isNull externalConfigDir) ''
+      mkdir -p "$conforig/etc"
+      mv "$out/etc/${projectName}" "$conforig/etc"
+      ln -s ${lib.escapeShellArg externalConfigDir} "$out/etc/${projectName}"
     ''}
   '';
 

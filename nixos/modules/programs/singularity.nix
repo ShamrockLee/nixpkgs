@@ -45,6 +45,15 @@ in
         Use `lib.mkForce` to forcefully specify the overriden package.
       '';
     };
+    enableExternalConfigDir = mkOption {
+      type = types.bool;
+      default = true;
+      example = false;
+      description = mdDoc ''
+        Whether to put Singularity/Apptainer configuration files at
+        /etc/singularity or /etc/apptainer.
+      '';
+    };
     enableFakeroot = mkOption {
       type = types.bool;
       default = true;
@@ -65,7 +74,9 @@ in
 
   config = mkIf cfg.enable {
     programs.singularity.packageOverriden = (cfg.package.override (
-      optionalAttrs cfg.enableFakeroot {
+      optionalAttrs cfg.enableExternalConfigDir {
+        externalConfigDir = "/etc/${cfg.package.projectName}";
+      } // optionalAttrs cfg.enableFakeroot {
         newuidmapPath = "/run/wrappers/bin/newuidmap";
         newgidmapPath = "/run/wrappers/bin/newgidmap";
       } // optionalAttrs cfg.enableSuid {
@@ -74,6 +85,10 @@ in
       }
     ));
     environment.systemPackages = [ cfg.packageOverriden ];
+    # Failed because of #200744
+    environment.etc.${cfg.packageOverriden.projectName} = mkIf cfg.enableExternalConfigDir ({
+      source = mkDefault "${cfg.packageOverriden.conforig}/etc/${cfg.packageOverriden.projectName}";
+    });
     security.wrappers."${cfg.packageOverriden.projectName}-suid" = mkIf cfg.enableSuid {
       setuid = true;
       owner = "root";
