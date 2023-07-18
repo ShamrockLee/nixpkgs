@@ -20,6 +20,8 @@
 , gzip # needed at runtime by gitweb.cgi
 , withSsh ? false
 , sysctl
+, withBashCompletion ? false # provide self-contained Bash completion
+, patsh
 , doInstallCheck ? !stdenv.isDarwin  # extremely slow on darwin
 , tests
 }:
@@ -77,7 +79,9 @@ stdenv.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [ gettext perlPackages.perl makeWrapper pkg-config ]
     ++ lib.optionals withManual [ asciidoc texinfo xmlto docbook2x
-         docbook_xsl docbook_xml_dtd_45 libxslt ];
+         docbook_xsl docbook_xml_dtd_45 libxslt ]
+    ++ lib.optionals withBashCompletion [ patsh ]
+    ;
   buildInputs = [ curl openssl zlib expat cpio libiconv bash ]
     ++ lib.optionals perlSupport [ perlPackages.perl ]
     ++ lib.optionals guiSupport [tcl tk]
@@ -276,7 +280,21 @@ stdenv.mkDerivation (finalAttrs: {
     [credential]
       helper = osxkeychain
     EOF
-  '';
+  ''
+  + lib.optionalString withBashCompletion ''
+    for FILE in "$out/share/bash-completion/completions/"{git,gitk}; do
+      if [[ -e "$FILE" ]]; then
+        echo "Patching with patsh $FILE" >&2
+        patsh -f -p ${lib.escapeShellArg (lib.makeBinPath [
+          coreutils
+          gawk
+          gnugrep
+          gnused
+        ])} --store-dir ${lib.escapeShellArg builtins.storeDir} "$FILE"
+      fi
+    done
+  ''
+  ;
 
 
   ## InstallCheck

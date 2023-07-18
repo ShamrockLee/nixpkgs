@@ -2207,6 +2207,7 @@ with pkgs;
     svnSupport = true;
     guiSupport = true;
     sendEmailSupport = true;
+    withBashCompletion = true;
     withSsh = true;
     withLibsecret = !stdenv.isDarwin;
   };
