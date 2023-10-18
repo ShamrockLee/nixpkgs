@@ -3,12 +3,42 @@
 let
   tests =
     let
-      p = pkgs.python3Packages.xpybutil.overridePythonAttrs (_: { dontWrapPythonPrograms = true; });
+      inherit (pkgs.python3Packages) pillow xpybutil;
+      applyOverridePythonAttrs = p: p.overridePythonAttrs (_: {dontWrapPythonPrograms = true; });
+      revertOverridePythonAttrs = p: p.overridePythonAttrs (_: {dontWrapPythonPrograms = false; });
+      getIsPythonAttrsOverriden = p: !lib.hasInfix "wrapPythonPrograms" p.postFixup;
+      xpybutil1 = applyOverridePythonAttrs xpybutil;
+      pillow1 = applyOverridePythonAttrs pillow;
+      applyOverridePillow = p: p.override { pillow = pillow1; };
+      getIsOverridenPillow = p: builtins.any (p': lib.hasPrefix "pillow" p'.pname && getIsPythonAttrsOverriden p') p.propagatedBuildInputs;
+      xpybutil2 = applyOverridePillow xpybutil;
+      xpybutil31 = applyOverridePillow xpybutil1;
+      xpybutil32 = applyOverridePythonAttrs xpybutil2;
     in
     [
       ({
         name = "overridePythonAttrs";
-        expr = !lib.hasInfix "wrapPythonPrograms" p.postFixup;
+        expr = getIsPythonAttrsOverriden xpybutil1;
+        expected = true;
+      })
+      ({
+        name = "overridePythonAttrs-nested";
+        expr = revertOverridePythonAttrs xpybutil1 == xpybutil;
+        expected = true;
+      })
+      ({
+        name = "override-pythonPackage";
+        expr = getIsOverridenPillow xpybutil2;
+        expected = true;
+      })
+      ({
+        name = "overridePythonAttrs-override";
+        expr = builtins.any (p: lib.hasPrefix "pillow" p.pname && getIsPythonAttrsOverriden p) xpybutil31.propagatedBuildInputs;
+        expected = true;
+      })
+      ({
+        name = "overridePythonAttrs-overrid-commutative";
+        expr = xpybutil31 == xpybutil32;
         expected = true;
       })
       ({
