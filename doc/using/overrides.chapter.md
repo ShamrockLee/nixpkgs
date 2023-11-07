@@ -206,3 +206,63 @@ The variable `c` however also has some additional functions, like
 [c.override](#sec-pkg-override) which can be used to override the
 default arguments. In this example the value of
 `(c.override { a = 4; }).result` is 6.
+
+## lib.applyToOverridable {#sec-lib-applyToOverridable}
+
+Overridables are mostly customized through overriding. Direct attribute update, including changes made with `lib.extendDerivation`, will get lost after overriding. To prevent this surprising behavior, the overriders needs to be decorated to automatically re-apply the changes to future overriden results.
+
+`lib.applyToOverridable` is a helper function that automatically decorates the overriders `override`, `overrideAttrs` and `overrideDerivation` for the specified change.
+
+:::{.example #lib-applyToOverridable-direct}
+
+# Comparison with / without using `lib.applyToOverridable` when directly updating the attribute of a derivation.
+
+```nix
+(pkgs.hello // { ans = 42; }).override { }
+```
+
+doesn't have the attribute `ans`, while
+
+```nix
+((lib.applyToOverridable (drv: drv // { ans = 42; }) pkgs.hello).override { }).ans
+```
+
+is `42`.
+
+:::
+
+:::{.example #lib-applyToOverridable-extendDerivation-passthru}
+
+# Comparison with / without using `lib.applyToOverridable` when applying passthru attributes to a derivation with `lib.extendDerivation`.
+
+```nix
+(lib.extendDerivation true { ans = 42; } pkgs.hello).override { }
+```
+
+doesn't have the attribute `ans`, while
+
+```nix
+((lib.applyToOverridable (lib.extendDerivation true { ans = 42; }) pkgs.hello).override { }).ans
+```
+
+is `42`.
+
+:::
+
+:::{.example #lib-applyToOverridable-extendDerivation-condition}
+
+# Comparison with / without using `lib.applyToOverridable` when posing an assertion to a derivation with `lib.extendDerivation`.
+
+```nix
+(lib.extendDerivation (2 + 2 == 5) { } pkgs.hello).override { }
+```
+
+evaluates successfully, while
+
+```nix
+(lib.applyToOverridable (lib.extendDerivation (2 + 2 == 5) { }) pkgs.hello).override { }
+```
+
+throws an assertion error.
+
+:::
