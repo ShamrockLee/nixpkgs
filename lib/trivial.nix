@@ -483,6 +483,18 @@ rec {
     setFunctionArgs g fArgs;
 
   /*
+    Like mirrorFunctionArg, but do nothing when the function *g*
+    doesn't provide information about its function argument.
+  */
+  mirrorFunctionArgs' =
+    f:
+    let
+      fArgs = functionArgs f;
+    in
+    optionalFunction (fArgs != { })
+    (g: setFunctionArgs g fArgs);
+
+  /*
     Turns any non-callable values into constant functions.
     Returns callable values as is.
 
