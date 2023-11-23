@@ -75,6 +75,7 @@ let
       info showWarnings nixpkgsVersion version isInOldestRelease
       mod compare splitByAndCompare
       functionArgs setFunctionArgs isFunction toFunction mirrorFunctionArgs
+      optionalFunction
       toHexString toBaseDigits inPureEvalMode;
     inherit (self.fixedPoints) fix fix' converge extends composeExtensions
       composeManyExtensions makeExtensible makeExtensibleWithCustomName;

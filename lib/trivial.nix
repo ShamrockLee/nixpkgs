@@ -501,6 +501,14 @@ rec {
     then v
     else k: v;
 
+  /*
+    Return the function *f* if the specified condition is met,
+    otherwise return the identity function (`lib.id`).
+  */
+  optionalFunction =
+    condition:
+    f: if condition then f else lib.id;
+
   /* Convert the given positive integer to a string of its hexadecimal
      representation. For example:
 
