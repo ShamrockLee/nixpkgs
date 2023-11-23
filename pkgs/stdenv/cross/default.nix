@@ -36,10 +36,7 @@ in lib.init bootStages ++ [
 
   # Run Packages
   (buildPackages: let
-    adaptStdenv =
-      if crossSystem.isStatic
-      then buildPackages.stdenvAdapters.makeStatic
-      else lib.id;
+    adaptStdenv = lib.optionalFunction crossSystem.isStatic buildPackages.stdenvAdapters.makeStatic;
   in {
     inherit config;
     overlays = overlays ++ crossOverlays;

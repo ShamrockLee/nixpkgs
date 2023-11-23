@@ -22,6 +22,7 @@ let
     length
     mapAttrs
     optional
+    optionalFunction
     optionals
     take
     ;
@@ -214,7 +215,7 @@ rec {
       in mkOption (defaults // {
         description = "The ${name'} package to use."
           + (if extraDescription == "" then "" else " ") + extraDescription;
-        type = with lib.types; (if nullable then nullOr else lib.id) package;
+        type = with lib.types; (optionalFunction nullable nullOr) package;
       } // optionalAttrs (example != null) {
         example = literalExpression
           (if isList example then "${pkgsText}." + concatStringsSep "." example else example);

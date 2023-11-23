@@ -15,7 +15,7 @@ rec {
   inherit lib;
 
 
-  hydraJob' = if scrubJobs then hydraJob else id;
+  hydraJob' = lib.optionalFunction scrubJobs hydraJob;
 
 
   /* !!! Hack: poor man's memoisation function.  Necessary to prevent

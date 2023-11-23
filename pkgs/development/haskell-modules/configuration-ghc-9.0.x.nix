@@ -140,7 +140,7 @@ self: super: {
   # We use a GHC patch to support the fix for https://github.com/fpco/inline-c/issues/127
   # which means that the upstream cabal file isn't allowed to add the flag.
   inline-c-cpp =
-    (if isDarwin then appendConfigureFlags ["--ghc-option=-fcompact-unwind"] else x: x)
+    lib.optionalFunction isDarwin (appendConfigureFlags ["--ghc-option=-fcompact-unwind"])
     super.inline-c-cpp;
 
   # 2022-05-31: weeder 2.4.* requires GHC 9.2

@@ -107,5 +107,5 @@ self: super: {
   mime-string = disableOptimization super.mime-string;
 
   # https://github.com/fpco/inline-c/issues/127 (recommend to upgrade to Nixpkgs GHC >=9.0)
-  inline-c-cpp = (if isDarwin then dontCheck else x: x) super.inline-c-cpp;
+  inline-c-cpp = (lib.optionalFunction isDarwin dontCheck) super.inline-c-cpp;
 }
