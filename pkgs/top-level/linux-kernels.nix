@@ -512,6 +512,14 @@ in {
 
     usbip = callPackage ../os-specific/linux/usbip { };
 
+    user-mode-linux = (callPackage ../os-specific/linux/user-mode-linux {
+      inherit kernel packagesFor;
+      self = self.user-mode-linux;
+    }).override (previousArgs: {
+      # Workaround SHELL := /bin/bash in Makefile
+      extraMakeFlags = [ "SHELL=bash" ] ++ previousArgs.extraMakeFlags or [ ];
+    });
+
     v86d = callPackage ../os-specific/linux/v86d { };
 
     veikk-linux-driver = callPackage ../os-specific/linux/veikk-linux-driver { };
