@@ -65,6 +65,7 @@
 , autoModules ? stdenv.hostPlatform.linux-kernel.autoModules
 , preferBuiltin ? stdenv.hostPlatform.linux-kernel.preferBuiltin or false
 , kernelArch ? stdenv.hostPlatform.linuxArch
+, kernelSubArch ? ""
 , kernelTests ? []
 , nixosTests
 , ...
@@ -121,7 +122,7 @@ let
   withRust = ((configfile.moduleStructuredConfig.settings.RUST or {}).tristate or null) == "y";
 
   configfile = stdenv.mkDerivation {
-    inherit ignoreConfigErrors autoModules preferBuiltin kernelArch extraMakeFlags;
+    inherit ignoreConfigErrors autoModules preferBuiltin kernelArch kernelSubArch extraMakeFlags;
     pname = "linux-config";
     inherit version;
 
@@ -167,6 +168,7 @@ let
       make $makeFlags \
           -C . O="$buildRoot" $kernelBaseConfig \
           ARCH=$kernelArch \
+          ${lib.optionalString (kernelSubArch != "") "SUBARCH=$kernelSubArch"} \
           HOSTCC=$HOSTCC HOSTCXX=$HOSTCXX HOSTAR=$HOSTAR HOSTLD=$HOSTLD \
           CC=$CC OBJCOPY=$OBJCOPY OBJDUMP=$OBJDUMP READELF=$READELF \
           $makeFlags
@@ -174,7 +176,9 @@ let
       # Create the config file.
       echo "generating kernel configuration..."
       ln -s "$kernelConfigPath" "$buildRoot/kernel-config"
-      DEBUG=1 ARCH=$kernelArch KERNEL_CONFIG="$buildRoot/kernel-config" AUTO_MODULES=$autoModules \
+      DEBUG=1 ARCH=$kernelArch \
+          ${lib.optionalString (kernelSubArch != "") "SUBARCH=$kernelSubArch"} \
+      KERNEL_CONFIG="$buildRoot/kernel-config" AUTO_MODULES=$autoModules \
         PREFER_BUILTIN=$preferBuiltin BUILD_ROOT="$buildRoot" SRC=. MAKE_FLAGS="$makeFlags" \
         perl -w $generateConfig
     '';
