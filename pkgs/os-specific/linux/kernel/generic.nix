@@ -239,6 +239,15 @@ let
           };
         in
         nixosTests.kernel-generic.passthru.testsForKernel overridableKernel;
+      run-kselftests = vmTools.runInLinuxVM (finalKernel.overrideAttrs (finalAttrs: previousAttrs: {
+        doCheck = true;
+        checkTarget = "selftests";
+        checkInputs = [
+        ];
+        passthru = previousAttrs.passthru or { } // {
+          unprivileged = finalAttrs.finalPackage;
+        };
+      }));
     } // (if builtins.isList kernelTests then
       let
         kernelTests' = lib.flatten kernelTests;
