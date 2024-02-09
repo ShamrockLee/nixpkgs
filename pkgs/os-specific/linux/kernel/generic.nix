@@ -12,6 +12,7 @@
 , rustc
 , rustPlatform
 , rust-bindgen
+, vmTools ? { }
 
 , # The kernel source tarball.
   src
@@ -65,7 +66,7 @@
 , autoModules ? stdenv.hostPlatform.linux-kernel.autoModules
 , preferBuiltin ? stdenv.hostPlatform.linux-kernel.preferBuiltin or false
 , kernelArch ? stdenv.hostPlatform.linuxArch
-, kernelTests ? []
+, kernelTests ? { }
 , nixosTests
 , ...
 }@args:
@@ -226,15 +227,29 @@ let
     });
 
     passthru = kernel.passthru // (removeAttrs passthru [ "passthru" ]);
-    tests = let
-      overridableKernel = finalKernel // {
-        override = args:
-          lib.warn (
-            "override is stubbed for NixOS kernel tests, not applying changes these arguments: "
-            + toString (lib.attrNames (lib.toFunction args { }))
-          ) overridableKernel;
-      };
-    in [ (nixosTests.kernel-generic.passthru.testsForKernel overridableKernel) ] ++ kernelTests;
+    tests = {
+      nixos-tests-kernel-generic =
+        let
+          overridableKernel = finalKernel // {
+            override = args:
+              lib.warn (
+                "override is stubbed for NixOS kernel tests, not applying changes these arguments: "
+                + toString (lib.attrNames (lib.toFunction args { }))
+              ) overridableKernel;
+          };
+        in
+        nixosTests.kernel-generic.passthru.testsForKernel overridableKernel;
+    } // (if builtins.isList kernelTests then
+      let
+        kernelTests' = lib.flatten kernelTests;
+      in
+      lib.warn
+        "buildLinux: kernelTests: expect an attribute set instead of a list."
+        (lib.listToAttrs (lib.genList (i: {
+          name = "extra-kernel-test-${toString i}";
+          value = lib.elemAt kernelTests' i;
+        }) (lib.length kernelTests')))
+    else kernelTests);
   };
 
   finalKernel = lib.extendDerivation true passthru kernel;
