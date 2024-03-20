@@ -84,46 +84,84 @@ rec {
 
   # Docs in doc/build-helpers/trivial-build-helpers.chapter.md
   # See https://nixos.org/manual/nixpkgs/unstable/#trivial-builder-writeTextFile
-  writeTextFile =
+  writeTextFile = fpArgs: (stdenvNoCC.mkDerivation fpArgs).overrideAttrs (finalAttrs:
     { name
     , text
     , executable ? false
     , destination ? ""
-    , checkPhase ? ""
     , meta ? { }
     , allowSubstitutes ? false
     , preferLocalBuild ? true
-    , derivationArgs ? { }
-    }:
+    , doInstallCheck ? true
+    , dontFixup ? true
+      # Deprecated arguments
+    , checkPhase ? "" # Use installCheckPhase instead.
+    , derivationArgs ? { } # Use <pkg>.overrideAttrs instead.
+    , ...
+    }@args:
     let
-      matches = builtins.match "/bin/([^/]+)" destination;
+      matches = builtins.match "/bin/([^/]+)" finalAttrs.destination;
     in
-    runCommand name
-      ({
-        inherit text executable checkPhase allowSubstitutes preferLocalBuild;
-        passAsFile = [ "text" ]
-          ++ derivationArgs.passAsFile or [ ];
-        meta = lib.optionalAttrs (executable && matches != null)
-          {
-            mainProgram = lib.head matches;
-          } // meta // derivationArgs.meta or {};
-      } // removeAttrs derivationArgs [ "passAsFile" "meta" ])
-      ''
-        target=$out${lib.escapeShellArg destination}
+    {
+      __structuredAttrs = true;
+
+      inherit
+        executable
+        destination
+        allowSubstitutes
+        preferLocalBuild
+        doInstallCheck
+        dontFixup
+        ;
+
+      passAsFile = args.passAsFile or [ ] ++ [ "text" ] ++ derivationArgs.passAsFile or [ ];
+
+      meta = lib.optionalAttrs (finalAttrs.executable && matches != null) {
+        mainProgram = lib.head matches;
+      } // meta // derivationArgs.meta or { };
+
+      dontUnpack = true;
+      dontPatch = true;
+      dontConfig = true;
+      dontBuild = true;
+
+      # Don't set checkPhase. Use installCheckPhase instead.
+      doCheck = false;
+
+      installPhase = ''
+        runHook preInstall
+
+        target="$out$destination"
         mkdir -p "$(dirname "$target")"
 
-        if [ -e "$textPath" ]; then
+        if [[ -e "$textPath" ]]; then
           mv "$textPath" "$target"
         else
           echo -n "$text" > "$target"
         fi
 
-        if [ -n "$executable" ]; then
+        if [[ -n "$executable" ]]; then
           chmod +x "$target"
         fi
 
-        eval "$checkPhase"
+        runHook postInstall
       '';
+    }
+    # For backward compatibility only.
+    # TODO: Remove after Nixpkgs 24.05 branch-off.
+    // lib.optionalAttrs (checkPhase != "" && !args?installCheckPhase) {
+      checkPhase = lib.warn
+        "writeTextFile: checkPhase is deprecated in favour of installCheckPhase"
+        "";
+      installCheckPhase = checkPhase;
+    }
+    # For backward compatibility only.
+    # TODO: Remove after Nixpkgs 24.05 branch-off.
+    // lib.warnIf (derivationArgs != { }) ''
+      writeTextFile: derivationArgs is deprecated. Override corresponding
+      stdenv.mkDerivation phases with <pkg>.overrideAttrs instead.
+    '' removeAttrs derivationArgs [ "passAsFile" "meta" ]
+    );
 
   # See doc/build-helpers/trivial-build-helpers.chapter.md
   # or https://nixos.org/manual/nixpkgs/unstable/#trivial-builder-text-writing
@@ -159,8 +197,10 @@ rec {
         #!${runtimeShell}
         ${text}
       '';
-      checkPhase = ''
+      installCheckPhase = ''
+        runHook preInstallCheck
         ${stdenv.shellDryRun} "$target"
+        runHook postInstallCheck
       '';
     };
 
@@ -175,8 +215,10 @@ rec {
         #!${runtimeShell}
         ${text}
       '';
-      checkPhase = ''
+      installCheckPhase = ''
+        runHook preInstallCheck
         ${stdenv.shellDryRun} "$target"
+        runHook postInstallCheck
       '';
       meta.mainProgram = name;
     };
@@ -184,7 +226,8 @@ rec {
   # TODO: move parameter documentation to the Nixpkgs manual
   # See doc/build-helpers/trivial-build-helpers.chapter.md
   # or https://nixos.org/manual/nixpkgs/unstable/#trivial-builder-writeShellApplication
-  writeShellApplication =
+  writeShellApplication = fpArgs: (writeTextFile fpArgs).overrideAttrs (finalAttrs:
+    # Arguments that appears to default to `null` won't be passed to writeTextFile if not set.
     {
       /*
          The name of the script to write.
@@ -209,7 +252,7 @@ rec {
 
          Type: AttrSet
        */
-      runtimeEnv ? null,
+      runtimeEnv ? { },
       /*
          `stdenv.mkDerivation`'s `meta` argument.
 
@@ -217,14 +260,14 @@ rec {
        */
       meta ? { },
       /*
-         The `checkPhase` to run. Defaults to `shellcheck` on supported
+         The `installCheckPhase` to run. Defaults to `shellcheck` on supported
          platforms and `bash -n`.
 
-         The script path will be given as `$target` in the `checkPhase`.
+         The script path will be given as `$target`.
 
          Type: String
        */
-      checkPhase ? null,
+      installCheckPhase ? null,
       /*
          Checks to exclude when running `shellcheck`, e.g. `[ "SC2016" ]`.
 
@@ -241,62 +284,69 @@ rec {
          Type: [String]
        */
       bashOptions ? [ "errexit" "nounset" "pipefail" ],
-      /* Extra arguments to pass to `stdenv.mkDerivation`.
-
-         :::{.caution}
-         Certain derivation attributes are used internally,
-         overriding those could cause problems.
-         :::
+      /* Deprecated: Use installCheckPhase instead.
+      */
+      checkPhase ? null,
+      /* Deprecated: Override stdenvNoCC.mkDerivation phases with <pkg>.overrideAttrs instead.
 
          Type: AttrSet
        */
       derivationArgs ? { },
-    }:
-    writeTextFile {
-      inherit name meta derivationArgs;
+      ...
+    }@args:
+    ({
       executable = true;
       destination = "/bin/${name}";
       allowSubstitutes = true;
       preferLocalBuild = false;
+      inherit bashOptions runtimeEnv runtimeInputs;
+      # Note: finalAttrs.text will be this text instead of args.text
       text = ''
         #!${runtimeShell}
-        ${lib.concatMapStringsSep "\n" (option: "set -o ${option}") bashOptions}
-      '' + lib.optionalString (runtimeEnv != null)
+        ${lib.concatMapStringsSep "\n" (option: "set -o ${option}") finalAttrs.bashOptions}
+      '' + lib.optionalString (finalAttrs.runtimeEnv != { })
         (lib.concatStrings
           (lib.mapAttrsToList
             (name: value: ''
               ${lib.toShellVar name value}
               export ${name}
             '')
-            runtimeEnv))
-      + lib.optionalString (runtimeInputs != [ ]) ''
+            finalAttrs.runtimeEnv))
+      + lib.optionalString (finalAttrs.runtimeInputs != [ ]) ''
 
-        export PATH="${lib.makeBinPath runtimeInputs}:$PATH"
+        export PATH="${lib.makeBinPath finalAttrs.runtimeInputs}:$PATH"
       '' + ''
 
         ${text}
       '';
 
-      checkPhase =
+      inherit excludeShellChecks;
+      installCheckPhase = args.installCheckPhase or (
         # GHC (=> shellcheck) isn't supported on some platforms (such as risc-v)
         # but we still want to use writeShellApplication on those platforms
         let
           shellcheckSupported = lib.meta.availableOn stdenv.buildPlatform shellcheck-minimal.compiler;
-          excludeOption = lib.optionalString (excludeShellChecks != [ ]) "--exclude '${lib.concatStringsSep "," excludeShellChecks}'";
+          excludeOption = lib.optionalString (finalAttrs.excludeShellChecks != [ ]) "--exclude '${lib.concatStringsSep "," finalAttrs.excludeShellChecks}'";
           shellcheckCommand = lib.optionalString shellcheckSupported ''
             # use shellcheck which does not include docs
             # pandoc takes long to build and documentation isn't needed for just running the cli
             ${lib.getExe shellcheck-minimal} ${excludeOption} "$target"
           '';
         in
-        if checkPhase == null then ''
-          runHook preCheck
+        ''
+          runHook preInstallCheck
           ${stdenv.shellDryRun} "$target"
           ${shellcheckCommand}
-          runHook postCheck
+          runHook postInstallCheck
         ''
-        else checkPhase;
-    };
+      );
+    } // lib.optionalAttrs (checkPhase != null && installCheckPhase == null) {
+      # For backward compatibility only.
+      # TODO: Convert to throw after Nixpkgs 24.05 branch-off.
+      installCheckPhase = lib.warn
+        "writeShellApplication: checkPhase is deprecated in favour of installCheckPhase."
+        checkPhase;
+    }));
 
   # Create a C binary
   # TODO: add to writers? pkgs/build-support/writers
