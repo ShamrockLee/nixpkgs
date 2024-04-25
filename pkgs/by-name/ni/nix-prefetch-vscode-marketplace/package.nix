@@ -2,6 +2,7 @@
 , lib
 , makeWrapper
 , shellcheck-minimal
+, argc
 , bash
 , coreutils
 , curl
@@ -44,6 +45,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   postFixup = ''
     wrapProgram "$out/bin/nix-prefetch-vscode-marketplace" \
       --prefix PATH : "${lib.makeBinPath [
+        argc
         coreutils
         curl
         jq
