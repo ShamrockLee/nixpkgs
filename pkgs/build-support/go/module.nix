@@ -157,7 +157,8 @@ let
     outputHashAlgo = if vendorHash == "" then "sha256" else null;
   }).overrideAttrs overrideModAttrs;
 
-  package = stdenv.mkDerivation (args // {
+in
+  stdenv.mkDerivation (args // {
     nativeBuildInputs = [ go ] ++ nativeBuildInputs;
 
     inherit (go) GOOS GOARCH;
@@ -318,6 +319,4 @@ let
       # Add default meta information
       platforms = go.meta.platforms or lib.platforms.all;
     } // meta;
-  });
-in
-package
+  })
