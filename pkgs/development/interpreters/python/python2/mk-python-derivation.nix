@@ -92,7 +92,7 @@
 
 , passthru ? {}
 
-, doCheck ? config.doCheckByDefault or false
+, doCheck ? true
 
 , disabledTestPaths ? []
 
@@ -209,7 +209,8 @@ let
 
     # Python packages don't have a checkPhase, only an installCheckPhase
     doCheck = false;
-    doInstallCheck = attrs.doCheck or true;
+    # The doCheck argument determines the doInstallCheck attribute.
+    doInstallCheck = doCheck;
     nativeInstallCheckInputs = [
     ] ++ lib.optionals (format == "setuptools") [
       # Longer-term we should get rid of this and require
