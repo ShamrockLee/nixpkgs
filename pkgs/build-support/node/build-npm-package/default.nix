@@ -6,6 +6,10 @@
 , darwin
 } @ topLevelArgs:
 
+fpargs:
+
+(stdenv.mkDerivation fpargs).overrideAttrs (
+finalAttrs:
 { name ? "${args.pname}-${args.version}"
 , src ? null
 , srcs ? null
@@ -64,7 +68,7 @@ let
     inherit nodejs;
   };
 in
-stdenv.mkDerivation (args // {
+{
   inherit npmDeps npmBuildScript;
 
   nativeBuildInputs = nativeBuildInputs

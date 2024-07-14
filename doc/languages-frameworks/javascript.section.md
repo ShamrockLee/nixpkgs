@@ -187,14 +187,14 @@ Here's an example:
 ```nix
 { lib, buildNpmPackage, fetchFromGitHub }:
 
-buildNpmPackage rec {
+buildNpmPackage (finalAttrs: {
   pname = "flood";
   version = "4.7.0";
 
   src = fetchFromGitHub {
     owner = "jesec";
-    repo = pname;
-    rev = "v${version}";
+    repo = finalAttrs.pname;
+    rev = "v${finalAttrs.version}";
     hash = "sha256-BR+ZGkBBfd0dSQqAvujsbgsEPFYw/ThrylxUbOksYxM=";
   };
 
@@ -211,7 +211,7 @@ buildNpmPackage rec {
     license = lib.licenses.gpl3Only;
     maintainers = with lib.maintainers; [ winter ];
   };
-}
+})
 ```
 
 In the default `installPhase` set by `buildNpmPackage`, it uses `npm pack --json --dry-run` to decide what files to install in `$out/lib/node_modules/$name/`, where `$name` is the `name` string defined in the package's `package.json`.
@@ -219,6 +219,8 @@ Additionally, the `bin` and `man` keys in the source's `package.json` are used t
 If these are not defined, `npm pack` may miss some files, and no binaries will be produced.
 
 #### Arguments {#javascript-buildNpmPackage-arguments}
+
+`buildNpmPackage` takes [fixed-point arguments](#mkderivation-recursive-attributes) as well as a plain attribute set. Here are some available arguments:
 
 * `npmDepsHash`: The output hash of the dependencies for this project. Can be calculated in advance with [`prefetch-npm-deps`](#javascript-buildNpmPackage-prefetch-npm-deps).
 * `makeCacheWritable`: Whether to make the cache writable prior to installing dependencies. Don't set this unless npm tries to write to the cache directory, as it can slow down the build.
