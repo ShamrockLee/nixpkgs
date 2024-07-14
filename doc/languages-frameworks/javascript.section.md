@@ -235,6 +235,8 @@ If these are not defined, `npm pack` may miss some files, and no binaries will b
 * `nodejs`: The `nodejs` package to build against, using the corresponding `npm` shipped with that version of `node`. Defaults to `pkgs.nodejs`.
 * `npmDeps`: The dependencies used to build the npm package. Especially useful to not have to recompute workspace depedencies.
 
+Aside from the above arguments, `buildNpmPackage` also passes `forceGitDeps`, `forceEmptyCache`, `npmDepsHash` (as `hash`) to [`fetchNpmDeps`](#javascript-buildNpmPackage-fetchNpmDeps) to form the default value of `npmDeps`.
+
 #### prefetch-npm-deps {#javascript-buildNpmPackage-prefetch-npm-deps}
 
 `prefetch-npm-deps` is a Nixpkgs package that calculates the hash of the dependencies of an npm project ahead of time.
