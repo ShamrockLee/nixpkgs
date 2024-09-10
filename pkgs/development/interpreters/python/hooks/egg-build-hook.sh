@@ -1,4 +1,6 @@
 # Setup hook to use for eggs
+# shellcheck shell=bash
+
 echo "Sourcing egg-build-hook"
 
 eggBuildPhase() {
