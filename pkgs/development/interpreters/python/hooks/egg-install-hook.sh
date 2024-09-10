@@ -1,15 +1,18 @@
 # Setup hook for eggs
+# shellcheck shell=bash
+
 echo "Sourcing egg-install-hook"
 
 eggInstallPhase() {
     echo "Executing eggInstallPhase"
     runHook preInstall
 
+    # shellcheck disable=SC2154
     mkdir -p "$out/@pythonSitePackages@"
     export PYTHONPATH="$out/@pythonSitePackages@:$PYTHONPATH"
 
-    find
-    @pythonInterpreter@ -m easy_install --prefix="$out" *.egg
+    find .
+    @pythonInterpreter@ -m easy_install --prefix="$out" ./*.egg
 
     runHook postInstall
     echo "Finished executing eggInstallPhase"
