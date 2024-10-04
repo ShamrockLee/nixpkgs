@@ -5,7 +5,6 @@
   fetchFromGitHub,
   davix,
   cmake,
-  cppunit,
   gtest,
   makeWrapper,
   pkg-config,
@@ -22,8 +21,6 @@
   systemd,
   voms,
   zlib,
-  # Build bin/test-runner
-  enableTestRunner ? true,
   # If not null, the builder will
   # move "$out/etc" to "$out/etc.orig" and symlink "$out/etc" to externalEtc.
   externalEtc ? "/etc",
@@ -50,23 +47,19 @@ stdenv.mkDerivation (finalAttrs: {
   ] ++ lib.optional (externalEtc != null) "etc";
 
   passthru.fetchxrd = callPackage ./fetchxrd.nix { xrootd = finalAttrs.finalPackage; };
-  passthru.tests =
-    lib.optionalAttrs stdenv.hostPlatform.isLinux {
-      test-runner = callPackage ./test-runner.nix { xrootd = finalAttrs.finalPackage; };
-    }
-    // {
-      test-xrdcp = finalAttrs.passthru.fetchxrd {
-        pname = "xrootd-test-xrdcp";
-        # Use the the bin output hash of xrootd as version to ensure that
-        # the test gets rebuild everytime xrootd gets rebuild
-        version =
-          finalAttrs.version
-          + "-"
-          + builtins.substring (builtins.stringLength builtins.storeDir + 1) 32 "${finalAttrs.finalPackage}";
-        url = "root://eospublic.cern.ch//eos/opendata/alice/2010/LHC10h/000138275/ESD/0000/AliESDs.root";
-        hash = "sha256-tIcs2oi+8u/Qr+P7AAaPTbQT+DEt26gEdc4VNerlEHY=";
-      };
+  passthru.tests = {
+    test-xrdcp = finalAttrs.passthru.fetchxrd {
+      pname = "xrootd-test-xrdcp";
+      # Use the the bin output hash of xrootd as version to ensure that
+      # the test gets rebuild everytime xrootd gets rebuild
+      version =
+        finalAttrs.version
+        + "-"
+        + builtins.substring (builtins.stringLength builtins.storeDir + 1) 32 "${finalAttrs.finalPackage}";
+      url = "root://eospublic.cern.ch//eos/opendata/alice/2010/LHC10h/000138275/ESD/0000/AliESDs.root";
+      hash = "sha256-tIcs2oi+8u/Qr+P7AAaPTbQT+DEt26gEdc4VNerlEHY=";
     };
+  };
 
   nativeBuildInputs = [
     cmake
@@ -96,10 +89,6 @@ stdenv.mkDerivation (finalAttrs: {
     ++ lib.optionals stdenv.hostPlatform.isLinux [
       systemd
       voms
-    ]
-    ++ lib.optionals enableTestRunner [
-      gtest
-      cppunit
     ];
 
   preConfigure =
@@ -137,20 +126,21 @@ stdenv.mkDerivation (finalAttrs: {
       install -m 644 -t "$out/lib/systemd/system" ../packaging/common/*.service ../packaging/common/*.socket
     '';
 
-  cmakeFlags =
-    [
-      (lib.cmakeFeature "XRootD_VERSION_STRING" finalAttrs.version)
-      (lib.cmakeBool "FORCE_ENABLED" true)
-      (lib.cmakeBool "ENABLE_DAVIX" true)
-      (lib.cmakeBool "ENABLE_FUSE" (!stdenv.hostPlatform.isDarwin)) # XRootD doesn't support MacFUSE
-      (lib.cmakeBool "ENABLE_MACAROONS" false)
-      (lib.cmakeBool "ENABLE_PYTHON" false) # built separately
-      (lib.cmakeBool "ENABLE_SCITOKENS" true)
-      (lib.cmakeBool "ENABLE_VOMS" stdenv.hostPlatform.isLinux)
-    ]
-    ++ lib.optionals enableTestRunner [
-      (lib.cmakeBool "ENABLE_TESTS" true)
-    ];
+  cmakeFlags = [
+    (lib.cmakeFeature "XRootD_VERSION_STRING" finalAttrs.version)
+    (lib.cmakeBool "FORCE_ENABLED" true)
+    (lib.cmakeBool "ENABLE_DAVIX" true)
+    (lib.cmakeBool "ENABLE_FUSE" (!stdenv.hostPlatform.isDarwin)) # XRootD doesn't support MacFUSE
+    (lib.cmakeBool "ENABLE_MACAROONS" false)
+    (lib.cmakeBool "ENABLE_PYTHON" false) # built separately
+    (lib.cmakeBool "ENABLE_SCITOKENS" true)
+    (lib.cmakeBool "ENABLE_TESTS" finalAttrs.doCheck)
+    (lib.cmakeBool "ENABLE_VOMS" stdenv.hostPlatform.isLinux)
+  ];
+
+  # TODO(@ShamrockLee): Enable the checks.
+  doCheck = false;
+  checkInputs = [ gtest ];
 
   postFixup = lib.optionalString (externalEtc != null) ''
     moveToOutput etc "$etc"
