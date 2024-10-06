@@ -1,5 +1,6 @@
 # Setup hook for recompiling bytecode.
 # https://github.com/NixOS/nixpkgs/issues/81441
+# shellcheck shell=bash
 echo "Sourcing python-recompile-bytecode-hook.sh"
 
 # Remove all bytecode from the $out output. Then, recompile only site packages folder
@@ -9,6 +10,7 @@ echo "Sourcing python-recompile-bytecode-hook.sh"
 pythonRecompileBytecodePhase() {
     # TODO: consider other outputs than $out
 
+    # shellcheck disable=SC2154
     items="$(find "$out" -name "@bytecodeName@")"
     if [[ -n $items ]]; then
         for pycache in $items; do
