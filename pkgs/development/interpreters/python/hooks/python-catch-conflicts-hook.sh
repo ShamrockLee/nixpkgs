@@ -1,4 +1,6 @@
 # Setup hook for detecting conflicts in Python packages
+# shellcheck shell=bash
+
 echo "Sourcing python-catch-conflicts-hook.sh"
 
 pythonCatchConflictsPhase() {
