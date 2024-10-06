@@ -1,8 +1,16 @@
 # Setup hook for pytest
+#
+# Note: For compatibility purposes,
+# this setup hook Bash-evaluates the flags attributes
+# before concatenating them to the command
+# when __structuredAttrs is false.
+
 echo "Sourcing pytest-check-hook"
 
-declare -ar disabledTests
-declare -a disabledTestPaths
+# shellcheck source=pkgs/development/interpreters/python/hooks/compat-helpers.sh
+source @compatHelpers@
+
+_canonicalizeFlagsArrayEval pytestFlagsArray
 
 function _concatSep {
     local result
@@ -19,8 +27,8 @@ function _concatSep {
 }
 
 function _pytestComputeDisabledTestsString() {
-    declare -a tests
-    local tests=($1)
+    local -a tests=()
+    _evalAndConcatTo tests "$@"
     local prefix="not "
     prefixed=("${tests[@]/#/$prefix}")
     result=$(_concatSep "and" prefixed)
@@ -32,25 +40,27 @@ function pytestCheckPhase() {
     runHook preCheck
 
     # Compose arguments
-    args=" -m pytest"
-    if [ -n "$disabledTests" ]; then
-        disabledTestsString=$(_pytestComputeDisabledTestsString "${disabledTests[@]}")
-        args+=" -k \""$disabledTestsString"\""
+    local -a defaultFlags=()
+    defaultFlags+=(-m pytest)
+    if [ -n "${disabledTests[*]-}" ]; then
+        local disabledTestsString
+        disabledTestsString=$(_pytestComputeDisabledTestsString disabledTests)
+        defaultFlags+=(-k "$disabledTestsString")
     fi
 
-    if [ -n "${disabledTestPaths-}" ]; then
-        eval "disabledTestPaths=($disabledTestPaths)"
-    fi
+    local -a disabledTestPathsArray=()
+    _evalAndConcatTo disabledTestPathsArray disabledTestPaths
 
-    for path in ${disabledTestPaths[@]}; do
+    for path in "${disabledTestPathsArray[@]}"; do
         if [ ! -e "$path" ]; then
             echo "Disabled tests path \"$path\" does not exist. Aborting"
             exit 1
         fi
-        args+=" --ignore=\"$path\""
+        defaultFlags+=("--ignore=$path")
     done
-    args+=" ${pytestFlagsArray[@]}"
-    eval "@pythonCheckInterpreter@ $args"
+    local -a flagsArray
+    concatTo defaultFlags pytestFlagsArray
+    @pythonCheckInterpreter@ "${flagsArray[@]}"
 
     runHook postCheck
     echo "Finished executing pytestCheckPhase"
