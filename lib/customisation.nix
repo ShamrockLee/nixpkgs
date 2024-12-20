@@ -184,7 +184,10 @@ rec {
         }
       else
         result
-    );
+    )
+    // optionalAttrs (f ? override) {
+      override = mirrorFunctionArgs f.override (fdrv: makeOverridable (f.override fdrv));
+    };
 
   /**
     Call the package function in the file `fn` with the required
