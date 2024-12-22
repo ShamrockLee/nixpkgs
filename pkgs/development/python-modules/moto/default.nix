@@ -239,7 +239,7 @@ buildPythonPackage rec {
     "tests/test_moto_api/recorder/test_recorder.py"
 
     # Flaky under parallel execution
-    "tests/test_resourcegroupstaggingapi/*.py"
+    "tests/test_resourcegroupstaggingapi"
 
     # Tries to access the network
     "tests/test_batch/test_batch_jobs.py"
