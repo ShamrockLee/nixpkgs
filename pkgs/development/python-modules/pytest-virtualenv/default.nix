@@ -39,7 +39,7 @@ buildPythonPackage {
   ];
 
   # Don't run integration tests
-  disabledTestPaths = [ "tests/integration/*" ];
+  disabledTestPaths = [ "tests/integration" ];
 
   meta = with lib; {
     description = "Create a Python virtual environment in your test that cleans up on teardown. The fixture has utility methods to install packages and list what’s installed";
