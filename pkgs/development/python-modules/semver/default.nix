@@ -34,11 +34,6 @@ buildPythonPackage rec {
 
   nativeCheckInputs = [ pytestCheckHook ];
 
-  disabledTestPaths = [
-    # Don't test the documentation
-    "docs/*.rst"
-  ];
-
   pythonImportsCheck = [ "semver" ];
 
   meta = with lib; {
