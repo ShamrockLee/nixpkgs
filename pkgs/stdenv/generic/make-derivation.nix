@@ -164,11 +164,11 @@ let
   getUntrackedAllowingAttributes = attrs:
     optionalAttrs (attrs ? disallowedReferences) {
       disallowedReferences =
-        map unsafeDerivationToUntrackedOutpath attrs.disallowedReferences;
+        mapNullable unsafeDerivationToUntrackedOutpath attrs.disallowedReferences;
     } //
     optionalAttrs (attrs ? disallowedRequisites) {
       disallowedRequisites =
-        map unsafeDerivationToUntrackedOutpath attrs.disallowedRequisites;
+        mapNullable unsafeDerivationToUntrackedOutpath attrs.disallowedRequisites;
     } //
     optionalAttrs (attrs ? allowedReferences) {
       allowedReferences =
