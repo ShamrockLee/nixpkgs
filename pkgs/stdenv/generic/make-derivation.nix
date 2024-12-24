@@ -643,8 +643,16 @@ extendDerivation
        # anymore.
        allowedReferences = null;
        allowedRequisites = null;
-       disallowedReferences = [ ];
-       disallowedRequisites = [ ];
+       disallowedReferences = optionals __structuredAttrs null;
+       disallowedRequisites = optionals __structuredAttrs null;
+     }
+     // optionalAttrs __structuredAttrs {
+       outputChecks.out = {
+         allowedReferences = null;
+         allowedRequisites = null;
+         disallowedReferences = [ ];
+         disallowedRequisites = [ ];
+       };
      });
 
      inherit passthru overrideAttrs;
