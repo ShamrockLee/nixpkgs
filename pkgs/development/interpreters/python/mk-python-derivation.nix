@@ -6,6 +6,7 @@
   python,
   wrapPython,
   unzip,
+  xorg, # lndir
   ensureNewerSourcesForZipFilesHook,
   # Whether the derivation provides a Python module or not.
   toPythonModule,
@@ -406,6 +407,7 @@ let
             dependencies
             optional-dependencies
             ;
+          addPythonCheck = true;
         }
         // {
           updateScript =
@@ -417,7 +419,73 @@ let
               filename
             ];
         }
-        // attrs.passthru or { };
+        // attrs.passthru or { }
+        // {
+          overridePythonCheck = lib.toExtension attrs.passthru.overridePythonCheck or (_: _: { });
+          tests = attrs.passthru.tests or { } // {
+            python-check = lib.optionalAttrs (finalAttrs.passthru.addPythonCheck) (
+              let
+                self = finalAttrs.finalPackage;
+              in
+              self.overrideAttrs (
+                lib.composeExtensions (finalCheckAttrs: previousAttrs:
+                let
+                  collected-dependencies =
+                    lib.converge (
+                      dependencies:
+                      lib.unique (lib.sort (drv1: drv2: lib.lessThan drv1.drvPath drv2.drvPath) (
+                        lib.concatMap (drv: drv.dependencies or [ ]) dependencies
+                        ++ dependencies
+                      ))
+                    ) previousAttrs.passthru.dependencies or [ ];
+                in
+                {
+                  name = "python-check-${previousAttrs.name}";
+                  nativeBuildInputs = previousAttrs.nativeBuildInputs or [ ] ++ [
+                    xorg.lndir
+                  ];
+                  unsetPhaseGroupsPhase = ''
+                    for phaseGroup in ''${unsetPhaseGroups[*]-}; do
+                      echo "Unsetting $phaseGroup"
+                      declare -n phaseGroupRef=$phaseGroup
+                      for p in ''${phaseGroupRef[*]-}; do
+                        echo "Unsetting $p"
+                        declare -n pRef=$p
+                        unset pRef
+                        pRef=$'\n'
+                        unset -n pRef
+                      done
+                      unset -n phaseGroupRef
+                    done
+                  '';
+                  unsetPhaseGroups = [
+                    "preFixupPhases"
+                    "preDistPhases"
+                  ];
+                  prePhases = previousAttrs.prePhases or [ ] ++ [ "unsetPhaseGroupsPhase" ];
+                  dontBuild = true;
+                  buildPhase = "";
+                  dontInstall = false;
+                  installPhase = lib.concatMapStrings (outputName: ''
+                    if [[ -d ${outputName} ]]; then
+                      mkdir ${placeholder outputName}
+                      lndir ${self.${outputName}} ${placeholder outputName}
+                    else
+                      ln -s ${self.${outputName}} ${placeholder outputName}
+                    fi
+                  '') self.outputs;
+                  doInstallCheck = true;
+                  dontFixup = true;
+                  fixupPhase = "";
+                  dontDist = true;
+                  distPhase = "";
+                  passthru = previousAttrs.passthru // {
+                    dependencies = collected-dependencies ++ [ self ];
+                  };
+                }) finalAttrs.passthru.overridePythonCheck
+              ));
+          };
+        };
 
       meta = {
         # default to python's platforms
