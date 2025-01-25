@@ -30,22 +30,26 @@ let
     # circular dependencies if enabled by default
     doCheck = false;
 
-    nativeCheckInputs = [
-      pytestCheckHook
-      wcag-contrast-ratio
-    ];
-
-    disabledTestPaths = [
-      # 5 lines diff, including one nix store path in 20000+ lines
-      "tests/examplefiles/bash/ltmain.sh"
-    ];
-
     pythonImportsCheck = [ "pygments" ];
 
-    passthru.tests = {
-      check = pygments.overridePythonAttrs (_: {
-        doCheck = true;
-      });
+    passthru = {
+
+      addPythonCheck = true;
+
+      overridePythonCheck = finalAttrs: previousAttrs: {
+
+        nativeInstallCheckInputs = [
+          pytestCheckHook
+          wcag-contrast-ratio
+        ];
+
+        disabledTestPaths = [
+          # 5 lines diff, including one nix store path in 20000+ lines
+          "tests/examplefiles/bash/ltmain.sh"
+        ];
+
+      };
+
     };
 
     meta = {
