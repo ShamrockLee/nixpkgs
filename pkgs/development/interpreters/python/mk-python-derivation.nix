@@ -110,7 +110,6 @@ let
     "pytestFlagsArray"
     "unittestFlags"
     "unittestFlagsArray"
-    "outputs"
     "stdenv"
     "dependencies"
     "optional-dependencies"
