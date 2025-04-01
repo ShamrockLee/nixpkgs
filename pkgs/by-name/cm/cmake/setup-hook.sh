@@ -120,6 +120,23 @@ cmakeConfigurePhase() {
     fi
 
     local flagsArray=()
+
+    local _definitionFeature _definitionType _definitionValue
+    for _definitionFeature in "${!cmakeDefinitions[@]}"; do
+        _definitionValue="${cmakeDefinitions[$_definitionFeature]}"
+        _definitionType="${cmakeDefinitionTypes[$_definitionFeature]-}"
+        _definitionType="${_definitionType,,}"
+        if [[ "$_definitionType" == "bool" ]]; then
+            if [[ "$_definitionValue" == "1" ]]; then
+                _definitionValue="ON"
+            elif [[ "$_definitionValue" == "" ]]; then
+                _definitionValue="OFF"
+            fi
+        fi
+        flagsArray+=("-D$_definitionFeature${_definitionType:+:}$_definitionType=$_definitionValue")
+    done
+    unset _definitionFeature _definitionType _definitionValue
+
     concatTo flagsArray cmakeFlags cmakeFlagsArray
 
     echoCmd 'cmake flags' "${flagsArray[@]}"
