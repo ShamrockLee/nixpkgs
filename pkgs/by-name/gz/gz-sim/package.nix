@@ -7,15 +7,15 @@
   gz-cmake,
   gz-common,
   gz-fuel-tools,
-  # gz-gui,
+  gz-gui,
   gz-math,
   gz-msgs,
-  # gz-physics,
-  # gz-plugin,
-  # gz-rendoring,
-  # gz-sensors,
+  gz-physics,
+  gz-plugin,
+  gz-rendering,
+  gz-sensors,
   gz-tools,
-  # gz-transport,
+  gz-transport,
   gz-utils,
   protobuf,
 # sdformat,
@@ -41,15 +41,15 @@ stdenv.mkDerivation (finalAttrs: {
     gz-cmake
     gz-common
     gz-fuel-tools
-    # gz-gui,
+    gz-gui
     gz-math
     gz-msgs
-    # gz-physics
-    # gz-plugin
-    # gz-rendering
-    # gz-sensors
+    gz-physics
+    gz-plugin
+    gz-rendering
+    gz-sensors
     gz-tools
-    # gz-transport
+    gz-transport
     gz-utils
     protobuf
     # sdformat
