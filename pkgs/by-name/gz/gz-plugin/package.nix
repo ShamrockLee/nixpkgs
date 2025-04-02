@@ -4,33 +4,19 @@
   fetchFromGitHub,
   nix-update-script,
   cmake,
-  gz-cmake,
-  gz-common,
-  gz-fuel-tools,
-  gz-gui,
-  gz-math,
-  gz-msgs,
-  gz-physics,
-  gz-plugin,
-  gz-rendering,
-  gz-sensors,
-  gz-tools,
-  gz-transport,
-  gz-utils,
-  protobuf,
-# sdformat,
+  gz-cmake
 }:
 
 stdenv.mkDerivation (finalAttrs: {
   __structuredAttrs = true;
-  pname = "gz-sim";
-  version = "9.0.0";
+  pname = "gz-plugin";
+  version = "3.0.0";
 
   src = fetchFromGitHub {
     owner = "gazebosim";
-    repo = "gz-sim";
-    rev = "gz-sim${lib.head (lib.splitString "." finalAttrs.version)}_${finalAttrs.version}";
-    hash = "sha256-gsWKknqcTiJc4YHIkmg1YGItwHG1As2OUnpPBQIwqj8=";
+    repo = "gz-plugin";
+    rev = "gz-plugin${lib.head (lib.splitString "." finalAttrs.version)}_${finalAttrs.version}";
+    hash = "sha256-h2Dx0KcFmJlS67q0v1zbd9nQkTCKgHkxt5KKTT5v+fw=";
   };
 
   nativeBuildInputs = [
@@ -39,27 +25,9 @@ stdenv.mkDerivation (finalAttrs: {
 
   buildInputs = [
     gz-cmake
-    gz-common
-    gz-fuel-tools
-    gz-gui
-    gz-math
-    gz-msgs
-    gz-physics
-    gz-plugin
-    gz-rendering
-    gz-sensors
-    gz-tools
-    gz-transport
-    gz-utils
-    protobuf
-    # sdformat
   ];
 
   strictDeps = true;
-
-  cmakeDefinitions = {
-    SKIP_PYBIND11 = true;
-  };
 
   cmakeFlags =
     # TODO(@ShamrockLee):
@@ -86,12 +54,12 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   meta = {
-    description = "Gazebo, the open source robotics simulator";
-    homepage = "https://github.com/gazebosim/gz-sim";
-    changelog = "https://github.com/gazebosim/gz-sim/blob/${finalAttrs.src.rev}/Changelog.md";
+    description = "Cross-platform C++ library for dynamically loading plugins";
+    homepage = "https://github.com/gazebosim/gz-plugin";
+    changelog = "https://github.com/gazebosim/gz-plugin/blob/${finalAttrs.src.rev}/Changelog.md";
     license = lib.licenses.asl20;
     maintainers = with lib.maintainers; [ ShamrockLee ];
-    mainProgram = "gz-sim";
+    mainProgram = "gz-plugin";
     platforms = lib.platforms.all;
   };
 })

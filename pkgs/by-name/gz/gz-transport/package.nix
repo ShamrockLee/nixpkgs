@@ -5,32 +5,20 @@
   nix-update-script,
   cmake,
   gz-cmake,
-  gz-common,
-  gz-fuel-tools,
-  gz-gui,
-  gz-math,
   gz-msgs,
-  gz-physics,
-  gz-plugin,
-  gz-rendering,
-  gz-sensors,
-  gz-tools,
-  gz-transport,
-  gz-utils,
-  protobuf,
-# sdformat,
+  gz-tools
 }:
 
 stdenv.mkDerivation (finalAttrs: {
   __structuredAttrs = true;
-  pname = "gz-sim";
-  version = "9.0.0";
+  pname = "gz-transport";
+  version = "14.0.0";
 
   src = fetchFromGitHub {
     owner = "gazebosim";
-    repo = "gz-sim";
-    rev = "gz-sim${lib.head (lib.splitString "." finalAttrs.version)}_${finalAttrs.version}";
-    hash = "sha256-gsWKknqcTiJc4YHIkmg1YGItwHG1As2OUnpPBQIwqj8=";
+    repo = "gz-transport";
+    rev = "gz-transport${lib.head (lib.splitString "." finalAttrs.version)}_${finalAttrs.version}";
+    hash = "sha256-zoGphy2cpmqJsnyS1LNVm4eGtHCWkAwIblga4RdVj4k=";
   };
 
   nativeBuildInputs = [
@@ -39,27 +27,11 @@ stdenv.mkDerivation (finalAttrs: {
 
   buildInputs = [
     gz-cmake
-    gz-common
-    gz-fuel-tools
-    gz-gui
-    gz-math
     gz-msgs
-    gz-physics
-    gz-plugin
-    gz-rendering
-    gz-sensors
     gz-tools
-    gz-transport
-    gz-utils
-    protobuf
-    # sdformat
   ];
 
   strictDeps = true;
-
-  cmakeDefinitions = {
-    SKIP_PYBIND11 = true;
-  };
 
   cmakeFlags =
     # TODO(@ShamrockLee):
@@ -86,12 +58,12 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   meta = {
-    description = "Gazebo, the open source robotics simulator";
-    homepage = "https://github.com/gazebosim/gz-sim";
-    changelog = "https://github.com/gazebosim/gz-sim/blob/${finalAttrs.src.rev}/Changelog.md";
+    description = "Transport library for component communication based on publication/subscription and service calls";
+    homepage = "https://github.com/gazebosim/gz-transport";
+    changelog = "https://github.com/gazebosim/gz-transport/blob/${finalAttrs.src.rev}/Changelog.md";
     license = lib.licenses.asl20;
     maintainers = with lib.maintainers; [ ShamrockLee ];
-    mainProgram = "gz-sim";
+    mainProgram = "gz-transport";
     platforms = lib.platforms.all;
   };
 })

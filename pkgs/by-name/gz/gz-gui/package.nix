@@ -6,31 +6,23 @@
   cmake,
   gz-cmake,
   gz-common,
-  gz-fuel-tools,
-  gz-gui,
   gz-math,
-  gz-msgs,
-  gz-physics,
-  gz-plugin,
-  gz-rendering,
-  gz-sensors,
-  gz-tools,
   gz-transport,
-  gz-utils,
-  protobuf,
-# sdformat,
+  gz-msgs,
+  gz-plugin,
+  gz-tools
 }:
 
 stdenv.mkDerivation (finalAttrs: {
   __structuredAttrs = true;
-  pname = "gz-sim";
+  pname = "gz-gui";
   version = "9.0.0";
 
   src = fetchFromGitHub {
     owner = "gazebosim";
-    repo = "gz-sim";
-    rev = "gz-sim${lib.head (lib.splitString "." finalAttrs.version)}_${finalAttrs.version}";
-    hash = "sha256-gsWKknqcTiJc4YHIkmg1YGItwHG1As2OUnpPBQIwqj8=";
+    repo = "gz-gui";
+    rev = "gz-gui${lib.head (lib.splitString "." finalAttrs.version)}_${finalAttrs.version}";
+    hash = "sha256-/YJW6XmdGwbyd5Nx3wcTqnRlpwE1unVGaNX91qfZmiM=";
   };
 
   nativeBuildInputs = [
@@ -40,26 +32,14 @@ stdenv.mkDerivation (finalAttrs: {
   buildInputs = [
     gz-cmake
     gz-common
-    gz-fuel-tools
-    gz-gui
     gz-math
-    gz-msgs
-    gz-physics
-    gz-plugin
-    gz-rendering
-    gz-sensors
-    gz-tools
     gz-transport
-    gz-utils
-    protobuf
-    # sdformat
+    gz-msgs
+    gz-plugin
+    gz-tools
   ];
 
   strictDeps = true;
-
-  cmakeDefinitions = {
-    SKIP_PYBIND11 = true;
-  };
 
   cmakeFlags =
     # TODO(@ShamrockLee):
@@ -86,12 +66,12 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   meta = {
-    description = "Gazebo, the open source robotics simulator";
-    homepage = "https://github.com/gazebosim/gz-sim";
-    changelog = "https://github.com/gazebosim/gz-sim/blob/${finalAttrs.src.rev}/Changelog.md";
+    description = "Builds on top of Qt to provide widgets which are useful when developing robotics applications, such as a 3D view, plots, dashboard, etc, and can be used together in a convenient unified interface";
+    homepage = "https://github.com/gazebosim/gz-gui";
+    changelog = "https://github.com/gazebosim/gz-gui/blob/${finalAttrs.src.rev}/Changelog.md";
     license = lib.licenses.asl20;
     maintainers = with lib.maintainers; [ ShamrockLee ];
-    mainProgram = "gz-sim";
+    mainProgram = "gz-gui";
     platforms = lib.platforms.all;
   };
 })
