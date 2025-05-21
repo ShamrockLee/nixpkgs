@@ -11,6 +11,7 @@
   texinfo,
   util-linux,
   autoreconfHook,
+  bash,
   glib,
   dotconf,
   libsndfile,
@@ -72,6 +73,7 @@ stdenv.mkDerivation rec {
 
   buildInputs =
     [
+      bash
       glib
       dotconf
       libsndfile
@@ -122,6 +124,9 @@ stdenv.mkDerivation rec {
     ];
 
   postPatch = ''
+    substituteInPlace src/modules/generic.c \
+      --replace-fail "/bin/bash" "${lib.getExe bash}"
+
     substituteInPlace src/modules/pico.c \
       --replace-fail "/usr/share/pico/lang" "${svox}/share/pico/lang"
   '';
