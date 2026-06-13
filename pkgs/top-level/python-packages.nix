@@ -12833,6 +12833,8 @@ self: super: with self; {
 
   plover-modal-dictionary = callPackage ../development/python-modules/plover-modal-dictionary { };
 
+  plover-next-stroke = callPackage ../development/python-modules/plover-next-stroke { };
+
   plover-python-dictionary = callPackage ../development/python-modules/plover-python-dictionary { };
 
   plover-stitching = callPackage ../development/python-modules/plover-stitching { };
