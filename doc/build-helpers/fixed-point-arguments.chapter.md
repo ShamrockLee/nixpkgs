@@ -74,3 +74,72 @@ To apply extra changes to the result derivation, pass `transformDrv` to `lib.ext
 ```nix
 lib.customisation.extendMkDerivation { transformDrv = drv: /...; }
 ```
+
+For example, `buildPythonPackage` uses `lib.extendMkDerivation`'s `transformDrv` to apply `toPythonModule` to the result derivation.
+
+Another classic scenario of using `transformDrv` is when a build helper constructs an inner derivation using the arguments it takes and then builds a wrapper derivation around it:
+
+:::{.example #ex-build-helpers-extendMkDerivation-transformDrv-wrapper}
+
+# Example `fetchConfiguredExample` using `lib.extendMkDerivation`'s `transformDrv` to wrap the constructed FOD
+
+```nix
+{
+  lib,
+  stdenvNoCC,
+  cacert,
+  configure-example,
+  download-example,
+}:
+
+lib.extendMkDerivation {
+  constructDrv = stdenvNoCC.mkDerivation;
+
+  excludeDrvArgNames = [
+    "bar"
+  ];
+
+  extendDrvArgs =
+    finalAttrs:
+    {
+      bar,
+      foo,
+      hash ? "",
+      ...
+    }@args:
+    {
+      inherit hash;
+      nativeBuildInputs = args.nativeBuildInputs or [ ] ++ [
+        cacert
+        download-example
+      ];
+      buildPhase = ''
+        runHook preBuild
+        download-example --foo="$foo" --out="$out"
+        runHook postBuild
+      '';
+      impureEnvVars = lib.fetchers.proxyImpureEnvVars;
+      outputHash = if finalAttrs.hash != "" then finalAttrs.hash else lib.fakeHash;
+      outputHashFormat = "recursive";
+      passthru = args.passthru or { } // {
+        inherit bar;
+      };
+    };
+
+  transformDrv =
+    unwrapped:
+    stdenvNoCC.mkDerivation (finalAttrs: {
+      name = finalAttrs.src.name + "-wrapped";
+      src = unwrapped;
+      nativeBuildInputs = [
+        configure-example
+      ];
+      inherit (unwrapped) bar;
+      buildPhase = ''
+        runHook preBuild
+        configure-example --bar="$bar"
+        runHook postBuild
+      '';
+    });
+}
+```

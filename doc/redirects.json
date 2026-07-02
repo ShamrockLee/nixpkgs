@@ -105,6 +105,9 @@
   "ex-build-helpers-extendMkDerivation": [
     "index.html#ex-build-helpers-extendMkDerivation"
   ],
+  "ex-build-helpers-extendMkDerivation-transformDrv-wrapper": [
+    "index.html#ex-build-helpers-extendMkDerivation-transformDrv-wrapper"
+  ],
   "ex-modularServiceCompliance-nixos": [
     "index.html#ex-modularServiceCompliance-nixos"
   ],
