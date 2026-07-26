@@ -63,7 +63,8 @@ rec {
       fetchFromGitHub {
         owner = "llvm";
         repo = "llvm-project";
-        rev = if gitRelease != null then gitRelease.rev else "llvmorg-${releaseInfo.version}";
+        rev = if gitRelease != null then gitRelease.rev else null;
+        tag = if gitRelease != null then null else "llvmorg-${releaseInfo.version}";
         sha256 = releaseInfo.original.sha256;
       };
 
