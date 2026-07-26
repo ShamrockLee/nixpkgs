@@ -60,14 +60,11 @@ rec {
     if monorepoSrc' != null then
       monorepoSrc'
     else
-      let
-        sha256 = releaseInfo.original.sha256;
-        rev = if gitRelease != null then gitRelease.rev else "llvmorg-${releaseInfo.version}";
-      in
       fetchFromGitHub {
         owner = "llvm";
         repo = "llvm-project";
-        inherit rev sha256;
+        rev = if gitRelease != null then gitRelease.rev else "llvmorg-${releaseInfo.version}";
+        sha256 = releaseInfo.original.sha256;
       };
 
 }
