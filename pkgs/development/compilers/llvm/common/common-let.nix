@@ -65,7 +65,11 @@ rec {
         repo = "llvm-project";
         rev = if gitRelease != null then gitRelease.rev else null;
         tag = if gitRelease != null then null else "llvmorg-${releaseInfo.version}";
-        sha256 = releaseInfo.original.sha256;
+        hash = releaseInfo.original.hash or lib.convertHash {
+          hash = releaseInfo.original.sha256;
+          hashAlgo = "sha256";
+          toHashFormat = "sri";
+        };
       };
 
 }
