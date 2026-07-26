@@ -64,11 +64,10 @@ rec {
         sha256 = releaseInfo.original.sha256;
         rev = if gitRelease != null then gitRelease.rev else "llvmorg-${releaseInfo.version}";
       in
-      fetchFromGitHub rec {
+      fetchFromGitHub {
         owner = "llvm";
         repo = "llvm-project";
         inherit rev sha256;
-        passthru = { inherit owner repo rev; };
       };
 
 }
